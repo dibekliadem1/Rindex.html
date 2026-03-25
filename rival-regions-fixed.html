@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RIVAL REGIONS — Efsanevi Savaş</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05070a;
+  --panel: #0a0d12;
+  --panel2: #0d1016;
+  --panel3: #11141c;
+  --border: #1a2030;
+  --border2: #252d40;
+  --gold: #d4af37;
+  --gold2: #f0c850;
+  --gold3: #ffe080;
+  --text: #c9c0b0;
+  --text2: #8a8478;
+  --red: #c0392b;
+  --red2: #e74c3c;
+  --green: #27ae60;
+  --green2: #2ecc71;
+  --blue: #2980b9;
+  --blue2: #3498db;
+  --purple: #8e44ad;
+  --orange: #e67e22;
+  --tab-h: 52px;
+  --hdr-h: 56px;
+  --bot-h: 64px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
+body {
+  color:var(--text);
+  font-family:'Crimson Pro', serif;
+  display:flex;
+  flex-direction:column;
+  background: radial-gradient(ellipse at top, #0a1018 0%, #05070a 100%);
+}
+
+/* ═══ HEADER ═══ */
+#hdr {
+  height:var(--hdr-h);
+  background: linear-gradient(180deg, #0d1218 0%, #080a0f 100%);
+  border-bottom: 1px solid var(--border);
+  display:flex; align-items:center; padding:0 12px; gap:10px;
+  flex-shrink:0; z-index:20;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+}
+#logo {
+  font-family:'Cinzel',serif;
+  font-size:14px; font-weight:900;
+  color:var(--gold); letter-spacing:2px;
+  text-shadow: 0 0 20px rgba(212,175,55,0.3);
+  white-space:nowrap;
+}
+#res-bar {
+  display:flex; gap:6px; flex:1; justify-content:center;
+  overflow-x:auto; scrollbar-width:none;
+}
+#res-bar::-webkit-scrollbar { display:none; }
+.ri {
+  display:flex; align-items:center; gap:4px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  padding: 4px 8px; border-radius: 3px;
+  font-size: 12px; position:relative;
+  min-width: fit-content;
+}
+.rv { color: var(--gold2); font-weight: 600; font-size:13px; }
+.rl { color: var(--text2); font-size: 9px; text-transform:uppercase; letter-spacing:1px; }
+#game-controls { display:flex; gap:4px; align-items:center; }
+#timer {
+  font-family:'Cinzel',serif;
+  font-size:11px; color:var(--gold);
+  border:1px solid var(--border);
+  padding:4px 10px; border-radius:2px;
+  background:rgba(212,175,55,0.05);
+}
+.spd-btn {
+  font-family:'Cinzel',serif; font-size:9px;
+  padding:5px 8px; border:1px solid var(--border);
+  background:transparent; color:var(--text2);
+  cursor:pointer; transition:all 0.2s; border-radius:2px;
+}
+.spd-btn.active {
+  border-color:var(--gold); color:var(--gold);
+  background:rgba(212,175,55,0.15);
+  box-shadow:0 0 10px rgba(212,175,55,0.1);
+}
+
+/* ═══ TABS ═══ */
+#tabs {
+  height:var(--tab-h);
+  display:flex; background:var(--panel);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0; z-index:15;
+}
+.tab-btn {
+  flex:1; border:none; background:transparent;
+  color:var(--text2);
+  font-family:'Cinzel',serif; font-size:9px;
+  letter-spacing:1.5px; text-transform:uppercase;
+  cursor:pointer; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:4px;
+  border-bottom:2px solid transparent;
+  transition:all 0.3s; position:relative;
+}
+.tab-btn .tab-icon { font-size:18px; transition:transform 0.2s; }
+.tab-btn:hover .tab-icon { transform:scale(1.1); }
+.tab-btn.active {
+  color:var(--gold);
+  border-bottom-color:var(--gold);
+  background: linear-gradient(180deg, transparent 0%, rgba(212,175,55,0.08) 100%);
+}
+.tab-badge {
+  position:absolute; top:6px; right:calc(50% - 20px);
+  background:var(--red); color:#fff;
+  font-size:8px; padding:2px 5px;
+  border-radius:10px; font-family:'Crimson Pro',serif;
+  font-weight:600; display:none;
+  animation:pulse 1.5s infinite;
+}
+.tab-badge.show { display:block; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+/* ═══ CONTENT ═══ */
+#content { flex:1; overflow:hidden; position:relative; }
+.tab-panel {
+  position:absolute; inset:0;
+  display:none; flex-direction:column;
+  overflow:hidden;
+}
+.tab-panel.active { display:flex; }
+
+/* ═══ MAP PANEL ═══ */
+#map-wrap {
+  flex:1; position:relative;
+  overflow:hidden;
+  background: radial-gradient(ellipse at center, #0a1018 0%, #05070a 100%);
+}
+#map-canvas { display:block; cursor:crosshair; touch-action:none; }
+
+/* Floating combat text */
+.combat-text {
+  position:absolute; font-family:'Cinzel',serif;
+  font-weight:700; font-size:14px;
+  pointer-events:none; animation:floatUp 1.5s ease-out forwards;
+  text-shadow:0 2px 4px rgba(0,0,0,0.8);
+}
+@keyframes floatUp {
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-40px) scale(0.8)}
+}
+.combat-gold { color:var(--gold2); }
+.combat-error { color:var(--red2); }
+
+/* ═══ SELECTION INFO BAR ═══ */
+#sel-bar {
+  background: var(--panel2);
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:10px 12px;
+  display:flex; gap:12px; align-items:center;
+  flex-shrink:0; min-height:50px;
+}
+.sel-name {
+  font-family:'Cinzel',serif;
+  font-size:13px; color:var(--gold2);
+  font-weight:700; min-width:100px;
+}
+.sel-stats { display:flex; gap:15px; flex:1; }
+.sel-stat { display:flex; flex-direction:column; gap:2px; }
+.sel-stat-l { font-size:9px; color:var(--text2); text-transform:uppercase; }
+.sel-stat-v { font-size:13px; color:var(--text); font-weight:600; }
+.sel-status {
+  font-size:10px; padding:4px 10px;
+  border-radius:3px; text-transform:uppercase;
+  letter-spacing:1px; font-family:'Cinzel',serif;
+  white-space:nowrap;
+}
+.status-own { background:rgba(39,174,96,0.15); color:var(--green2); border:1px solid var(--green); }
+.status-enemy { background:rgba(192,57,43,0.15); color:var(--red2); border:1px solid var(--red); }
+.status-neutral { background:rgba(138,132,120,0.1); color:var(--text2); border:1px solid var(--text2); }
+
+/* ═══ ACTION BAR ═══ */
+#action-bar {
+  background: var(--panel);
+  border-top:1px solid var(--border);
+  padding:10px 12px;
+  display:flex; gap:8px; align-items:center;
+  flex-shrink:0; flex-wrap:wrap;
+}
+.btn {
+  font-family:'Cinzel',serif; font-size:10px;
+  letter-spacing:1px; text-transform:uppercase;
+  padding:10px 14px; border:1px solid;
+  background:transparent; cursor:pointer;
+  transition:all 0.2s; border-radius:2px;
+  display:flex; align-items:center; gap:6px;
+  min-height:40px;
+}
+.btn:disabled { opacity:0.25; cursor:not-allowed; filter:grayscale(0.8); }
+.btn-primary { color:var(--gold); border-color:var(--gold); background: linear-gradient(180deg, rgba(212,175,55,0.1) 0%, transparent 100%); }
+.btn-primary:not(:disabled):hover { background:rgba(212,175,55,0.2); box-shadow:0 0 15px rgba(212,175,55,0.2); }
+.btn-danger { color:var(--red2); border-color:var(--red); background: linear-gradient(180deg, rgba(192,57,43,0.1) 0%, transparent 100%); }
+.btn-danger:not(:disabled):hover { background:rgba(192,57,43,0.2); box-shadow:0 0 15px rgba(192,57,43,0.2); }
+.btn-info { color:var(--blue2); border-color:var(--blue); background: linear-gradient(180deg, rgba(41,128,185,0.1) 0%, transparent 100%); }
+.btn-info:not(:disabled):hover { background:rgba(41,128,185,0.2); }
+#hint-txt {
+  flex:1; font-size:11px; color:var(--text2);
+  font-style:italic; text-align:center; line-height:1.4;
+  min-width:100px;
+}
+.cd-group { display:flex; gap:6px; }
+.cd-item { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.cd-icon { font-size:12px; }
+.cd-bar { width:32px; height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; }
+.cd-fill { height:100%; border-radius:2px; transition:width 0.1s linear; }
+.cd-atk { background:var(--red); }
+.cd-bld { background:var(--green); }
+.cd-rec { background:var(--blue); }
+
+/* ═══ ARMY PANEL ═══ */
+.section-header {
+  background:var(--panel2);
+  border-bottom:1px solid var(--border);
+  padding:12px 15px;
+  display:flex; justify-content:space-between; align-items:center;
+  position:sticky; top:0; z-index:5;
+  flex-shrink:0;
+}
+.section-title { font-family:'Cinzel',serif; font-size:11px; color:var(--gold); letter-spacing:2px; text-transform:uppercase; }
+.power-display { text-align:right; }
+.power-val { font-family:'Cinzel',serif; font-size:24px; color:var(--gold2); font-weight:700; }
+.power-label { font-size:9px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
+.power-bar { width:120px; height:4px; background:rgba(255,255,255,0.05); border-radius:2px; margin-top:6px; overflow:hidden; }
+.power-fill { height:100%; background:linear-gradient(90deg, var(--blue), var(--gold)); border-radius:2px; transition:width 0.5s ease; }
+
+#army-scroll { flex:1; overflow-y:auto; }
+.unit-card {
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  padding:15px; display:flex; gap:15px;
+  align-items:center; cursor:pointer;
+  transition:all 0.2s; position:relative; overflow:hidden;
+}
+.unit-card::before {
+  content:''; position:absolute; left:0; top:0; bottom:0;
+  width:3px; background:transparent; transition:background 0.2s;
+}
+.unit-card:hover { background:var(--panel2); }
+.unit-card:hover::before { background:var(--gold); }
+.unit-icon-wrap {
+  width:56px; height:56px;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:4px; display:flex;
+  align-items:center; justify-content:center;
+  font-size:28px; flex-shrink:0; position:relative;
+}
+.unit-info { flex:1; }
+.unit-name { font-family:'Cinzel',serif; font-size:13px; color:var(--text); margin-bottom:4px; }
+.unit-desc { font-size:11px; color:var(--text2); line-height:1.5; margin-bottom:8px; }
+.unit-stats { display:flex; gap:15px; }
+.unit-stat { display:flex; align-items:center; gap:4px; font-size:11px; }
+.unit-stat-val { color:var(--gold2); font-weight:600; }
+.unit-count { text-align:right; min-width:60px; }
+.unit-count-val { font-family:'Cinzel',serif; font-size:28px; color:var(--text); }
+.unit-count-max { font-size:10px; color:var(--text2); }
+.recruit-btn {
+  margin-top:8px; padding:8px 16px; font-size:10px;
+  border:1px solid var(--blue); color:var(--blue2);
+  background:transparent; cursor:pointer; transition:all 0.2s;
+  font-family:'Cinzel',serif; text-transform:uppercase;
+  letter-spacing:1px; border-radius:2px; display:block;
+}
+.recruit-btn:hover:not(:disabled) { background:rgba(41,128,185,0.2); }
+.recruit-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+/* ═══ FACTORY PANEL ═══ */
+#factory-scroll { flex:1; overflow-y:auto; }
+.factory-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; padding:15px; }
+.factory-card {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:4px; overflow:hidden; transition:all 0.3s;
+}
+.factory-card:hover { border-color:var(--border2); box-shadow:0 10px 30px rgba(0,0,0,0.3); }
+.factory-header {
+  padding:15px; display:flex; gap:12px;
+  align-items:center; border-bottom:1px solid var(--border);
+  background:var(--panel2);
+}
+.factory-icon {
+  width:48px; height:48px; background:var(--panel3);
+  border:1px solid var(--border); border-radius:4px;
+  display:flex; align-items:center; justify-content:center; font-size:24px;
+}
+.factory-title { flex:1; }
+.factory-name { font-family:'Cinzel',serif; font-size:13px; color:var(--text); margin-bottom:3px; }
+.factory-desc { font-size:11px; color:var(--text2); line-height:1.4; }
+.factory-count { text-align:right; }
+.factory-owned { font-family:'Cinzel',serif; font-size:20px; color:var(--gold2); }
+.factory-max { font-size:10px; color:var(--text2); }
+.factory-body { padding:15px; }
+.factory-effect {
+  background:rgba(212,175,55,0.05); border:1px solid var(--border);
+  border-radius:3px; padding:10px; margin-bottom:12px;
+  display:flex; align-items:center; gap:10px;
+}
+.effect-icon { font-size:16px; }
+.effect-text { font-size:11px; color:var(--text2); }
+.effect-val { color:var(--gold2); font-weight:600; }
+.factory-build-btn {
+  width:100%; padding:12px; font-family:'Cinzel',serif; font-size:11px;
+  text-transform:uppercase; letter-spacing:1px; border:1px solid var(--border);
+  background:transparent; color:var(--text); cursor:pointer; transition:all 0.2s;
+  border-radius:2px; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.factory-build-btn:hover:not(:disabled) { border-color:var(--gold); color:var(--gold); background:rgba(212,175,55,0.1); }
+.factory-build-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+/* ═══ RANKINGS PANEL ═══ */
+#rank-scroll { flex:1; overflow-y:auto; }
+.rank-header { background:var(--panel2); border-bottom:1px solid var(--border); padding:15px; display:flex; justify-content:space-between; align-items:center; }
+.rank-subtitle { font-size:11px; color:var(--text2); }
+.rank-item {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 15px; border-bottom:1px solid var(--border);
+  transition:all 0.2s;
+}
+.rank-item:hover { background:var(--panel); }
+.rank-item.player { background:linear-gradient(90deg, rgba(212,175,55,0.1) 0%, transparent 100%); border-left:3px solid var(--gold); }
+.rank-pos { font-family:'Cinzel',serif; font-size:16px; color:var(--text2); width:30px; text-align:center; }
+.rank-pos.top { color:var(--gold); }
+.rank-flag { width:32px; height:32px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.rank-info { flex:1; }
+.rank-name { font-family:'Cinzel',serif; font-size:12px; color:var(--text); margin-bottom:2px; }
+.rank-territories { font-size:10px; color:var(--text2); }
+.rank-power { text-align:right; }
+.rank-power-val { font-family:'Cinzel',serif; font-size:14px; color:var(--gold2); }
+.rank-power-label { font-size:9px; color:var(--text2); text-transform:uppercase; }
+
+/* ═══ LOG PANEL ═══ */
+#log-scroll { flex:1; overflow-y:auto; padding:15px; background:var(--bg); font-size:12px; line-height:2; }
+.log-entry {
+  padding:8px 12px; margin-bottom:6px;
+  border-radius:3px; border-left:3px solid transparent;
+  animation:fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+.log-time { font-size:9px; color:var(--text2); margin-right:8px; font-family:'Cinzel',serif; }
+.log-war { background:rgba(192,57,43,0.08); border-left-color:var(--red); }
+.log-win { background:rgba(39,174,96,0.08); border-left-color:var(--green); }
+.log-info { background:rgba(41,128,185,0.08); border-left-color:var(--blue); }
+.log-gold { background:rgba(212,175,55,0.08); border-left-color:var(--gold); }
+.log-system { background:var(--panel); border-left-color:var(--text2); }
+
+/* ═══ OVERLAYS ═══ */
+.overlay {
+  position:fixed; inset:0;
+  background:rgba(5,7,10,0.95);
+  z-index:1000; display:none;
+  align-items:center; justify-content:center;
+  padding:20px; backdrop-filter:blur(10px);
+}
+.overlay.active { display:flex; }
+.overlay-content {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:4px; max-width:420px; width:100%;
+  overflow:hidden; box-shadow:0 25px 50px rgba(0,0,0,0.5);
+}
+.overlay-header { background:var(--panel2); border-bottom:1px solid var(--border); padding:20px; text-align:center; }
+.overlay-title { font-family:'Cinzel',serif; font-size:22px; color:var(--gold); margin-bottom:8px; letter-spacing:3px; }
+.overlay-subtitle { font-size:13px; color:var(--text2); line-height:1.6; }
+.overlay-body { padding:20px; }
+.feature-list { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+.feature-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--panel2); border-radius:3px; border:1px solid var(--border); }
+.feature-icon { font-size:20px; }
+.feature-text { font-size:12px; color:var(--text); }
+.feature-text strong { color:var(--gold2); display:block; margin-bottom:2px; }
+.overlay-btn {
+  width:100%; padding:15px; font-family:'Cinzel',serif; font-size:13px;
+  text-transform:uppercase; letter-spacing:2px;
+  border:1px solid var(--gold); color:var(--gold);
+  background:linear-gradient(180deg, rgba(212,175,55,0.15) 0%, transparent 100%);
+  cursor:pointer; transition:all 0.3s; border-radius:2px;
+}
+.overlay-btn:hover { background:rgba(212,175,55,0.25); box-shadow:0 0 30px rgba(212,175,55,0.2); }
+.end-stats { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin:20px 0; }
+.end-stat { text-align:center; padding:15px; background:var(--panel2); border:1px solid var(--border); border-radius:3px; }
+.end-stat-val { font-family:'Cinzel',serif; font-size:28px; color:var(--gold2); margin-bottom:4px; }
+.end-stat-label { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
+
+/* ═══ TOOLTIP ═══ */
+#tooltip {
+  position:fixed; background:var(--panel);
+  border:1px solid var(--border);
+  padding:8px 12px; border-radius:3px;
+  font-size:11px; color:var(--text);
+  pointer-events:none; z-index:500;
+  display:none; box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  max-width:200px;
+}
+.tooltip-title { font-family:'Cinzel',serif; color:var(--gold); margin-bottom:4px; }
+.tooltip-row { display:flex; justify-content:space-between; gap:15px; margin-bottom:2px; }
+
+/* ═══ NOTIFICATIONS ═══ */
+#notif-container {
+  position:fixed; top:70px; right:10px;
+  z-index:400; display:flex;
+  flex-direction:column; gap:8px; pointer-events:none;
+}
+.notif {
+  background:var(--panel); border:1px solid var(--border);
+  border-left:3px solid var(--gold);
+  padding:12px 15px; border-radius:3px;
+  font-size:12px; color:var(--text);
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  animation:slideIn 0.3s ease; max-width:250px;
+}
+.notif.error { border-left-color:var(--red); }
+.notif.success { border-left-color:var(--green); }
+.notif.info { border-left-color:var(--blue); }
+@keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--border2); }
+
+@media (max-width:480px) {
+  .factory-grid { grid-template-columns:1fr; }
+  .sel-stats { gap:8px; }
+  .btn { padding:8px 10px; font-size:9px; }
+}
+</style>
+</head>
+<body>
+
+<!-- INTRO OVERLAY -->
+<div class="overlay active" id="intro-overlay">
+  <div class="overlay-content">
+    <div class="overlay-header">
+      <div class="overlay-title">⚔ RAKİP BÖLGELER</div>
+      <div class="overlay-subtitle">Strateji. Savaş. İmparatorluk.</div>
+    </div>
+    <div class="overlay-body">
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="feature-icon">🗺️</span>
+          <div class="feature-text"><strong>600 Bölge</strong>200 devlet arasında stratejik savaş</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">⚔️</span>
+          <div class="feature-text"><strong>4 Birlik Tipi</strong>Piyade, Okçu, Süvari, Mancınık</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">🏭</span>
+          <div class="feature-text"><strong>4 Fabrika</strong>Maden, Kışla, Pazar, Dövme</div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon">⏱️</span>
+          <div class="feature-text"><strong>Gerçek Zamanlı</strong>Bekleme süreleri ve cooldown'lar</div>
+        </div>
+      </div>
+      <button class="overlay-btn" onclick="startGame()">⚔ Savaşa Başla</button>
+    </div>
+  </div>
+</div>
+
+<!-- END OVERLAY -->
+<div class="overlay" id="end-overlay">
+  <div class="overlay-content">
+    <div class="overlay-header">
+      <div class="overlay-title" id="end-title">🏆 ZAFER!</div>
+      <div class="overlay-subtitle" id="end-desc">Haritaya hükmettiniz.</div>
+    </div>
+    <div class="overlay-body">
+      <div class="end-stats">
+        <div class="end-stat"><div class="end-stat-val" id="end-regions">0</div><div class="end-stat-label">Bölge</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-battles">0</div><div class="end-stat-label">Savaş</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-gold">0</div><div class="end-stat-label">Altın</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-time">0:00</div><div class="end-stat-label">Süre</div></div>
+      </div>
+      <button class="overlay-btn" onclick="location.reload()">Yeniden Oyna</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div id="logo">⚔ RIVAL</div>
+  <div id="res-bar">
+    <div class="ri"><span>💰</span><span class="rv" id="r-gold">200</span><span class="rl">Altın</span></div>
+    <div class="ri"><span>⚔️</span><span class="rv" id="r-army">20</span><span class="rl">Güç</span></div>
+    <div class="ri"><span>🏭</span><span class="rv" id="r-fac">0</span><span class="rl">Fabrika</span></div>
+    <div class="ri"><span>🗺️</span><span class="rv" id="r-reg">1</span><span class="rl">Bölge</span></div>
+    <div class="ri"><span>📊</span><span class="rv" id="r-rank">#?</span></div>
+  </div>
+  <div id="game-controls">
+    <button class="spd-btn active" onclick="setSpeed(1)" id="sp1">×1</button>
+    <button class="spd-btn" onclick="setSpeed(3)" id="sp3">×3</button>
+    <button class="spd-btn" onclick="setSpeed(10)" id="sp10">×10</button>
+    <div id="timer">00:00</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div id="tabs">
+  <button class="tab-btn active" onclick="switchTab('map')" id="tab-map">
+    <span class="tab-icon">🗺️</span><span>Harita</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('army')" id="tab-army">
+    <span class="tab-icon">⚔️</span><span>Ordu</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('factory')" id="tab-factory">
+    <span class="tab-icon">🏭</span><span>Fabrika</span>
+    <span class="tab-badge" id="badge-factory">!</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('rank')" id="tab-rank">
+    <span class="tab-icon">🏆</span><span>Sıralama</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('log')" id="tab-log">
+    <span class="tab-icon">📜</span><span>Olaylar</span>
+    <span class="tab-badge" id="badge-log">0</span>
+  </button>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+
+  <!-- MAP -->
+  <div class="tab-panel active" id="panel-map">
+    <div id="map-wrap">
+      <canvas id="map-canvas"></canvas>
+    </div>
+    <div id="sel-bar">
+      <div class="sel-name" id="sel-name">Bölge Seçin</div>
+      <div class="sel-stats">
+        <div class="sel-stat"><span class="sel-stat-l">Ordu</span><span class="sel-stat-v" id="sel-army">—</span></div>
+        <div class="sel-stat"><span class="sel-stat-l">Savunma</span><span class="sel-stat-v" id="sel-def">—</span></div>
+        <div class="sel-stat"><span class="sel-stat-l">Gelir</span><span class="sel-stat-v" id="sel-income">—</span></div>
+        <div class="sel-stat"><span class="sel-stat-l">Fabrika</span><span class="sel-stat-v" id="sel-fac">—</span></div>
+      </div>
+      <span class="sel-status status-neutral" id="sel-status">SEÇİLMEDİ</span>
+    </div>
+    <div id="action-bar">
+      <button class="btn btn-danger" id="btn-atk" onclick="actionAttack()" disabled>⚔ Saldır</button>
+      <button class="btn btn-primary" id="btn-rec" onclick="switchTab('army')" disabled>🛡 Asker Al</button>
+      <button class="btn btn-info" id="btn-bld" onclick="switchTab('factory')" disabled>🏭 Fabrika</button>
+      <span id="hint-txt">Haritadan bir bölge seçin.</span>
+      <div class="cd-group">
+        <div class="cd-item"><span class="cd-icon">⚔</span><div class="cd-bar"><div class="cd-fill cd-atk" id="cd-atk" style="width:100%"></div></div></div>
+        <div class="cd-item"><span class="cd-icon">🛡</span><div class="cd-bar"><div class="cd-fill cd-rec" id="cd-rec" style="width:100%"></div></div></div>
+        <div class="cd-item"><span class="cd-icon">🏭</span><div class="cd-bar"><div class="cd-fill cd-bld" id="cd-bld" style="width:100%"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARMY -->
+  <div class="tab-panel" id="panel-army">
+    <div class="section-header">
+      <div class="section-title">⚔ Birlikleriniz</div>
+      <div class="power-display">
+        <div class="power-val" id="power-total">0</div>
+        <div class="power-label">Toplam Güç</div>
+        <div class="power-bar"><div class="power-fill" id="power-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div id="army-scroll"><div id="unit-list"></div></div>
+  </div>
+
+  <!-- FACTORY -->
+  <div class="tab-panel" id="panel-factory">
+    <div class="section-header">
+      <div class="section-title">🏭 Fabrikalar</div>
+      <div class="power-display">
+        <div class="power-val" id="fac-total">0</div>
+        <div class="power-label">Toplam Fabrika</div>
+      </div>
+    </div>
+    <div id="factory-scroll"><div class="factory-grid" id="factory-list"></div></div>
+  </div>
+
+  <!-- RANKINGS -->
+  <div class="tab-panel" id="panel-rank">
+    <div class="rank-header">
+      <div class="section-title">🏆 Dünya Sıralaması</div>
+      <div class="rank-subtitle">En güçlü 20 devlet</div>
+    </div>
+    <div id="rank-scroll"><div id="rank-list"></div></div>
+  </div>
+
+  <!-- LOG -->
+  <div class="tab-panel" id="panel-log">
+    <div id="log-scroll"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notif-container"></div>
+<div id="tooltip"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════
+const CONFIG = {
+  COLS: 30,
+  ROWS: 20,
+  NUM_STATES: 200,
+  AI_INTERVAL: 2500,
+  INCOME_TICK: 5000,
+  CD: {
+    attack:   6000,
+    infantry: 8000,
+    archer:   10000,
+    cavalry:  12000,
+    siege:    15000,
+    mine:     10000,
+    barracks: 12000,
+    market:   12000,
+    forge:    18000,
+  }
+};
+
+const UNITS = {
+  infantry: { id:'infantry', name:'Piyade',  icon:'🛡️', desc:'Sağlam temel birlik. Dengeli saldırı ve savunma.', attack:1,   defense:1,   power:1,   cost:25,  max:999, color:'#2980b9' },
+  archer:   { id:'archer',   name:'Okçu',    icon:'🏹', desc:'Uzun menzilli ölümcül atışlar. Düşük savunma.',  attack:2.5, defense:0.3, power:1.8, cost:45,  max:500, color:'#27ae60' },
+  cavalry:  { id:'cavalry',  name:'Süvari',  icon:'🐎', desc:'Yıldırım hızında saldırı. Yüksek darbe gücü.',  attack:4,   defense:0.8, power:3.5, cost:80,  max:300, color:'#e67e22' },
+  siege:    { id:'siege',    name:'Mancınık',icon:'💥', desc:'Kaleleri yıkar. Savunmaları ezici güçle parçalar.', attack:8, defense:0.1, power:6,   cost:150, max:100, color:'#c0392b' },
+};
+
+const FACTORIES = {
+  mine:     { id:'mine',     name:'Altın Madeni',   icon:'⛏️',  desc:'Zengin altın damarları. Bölge gelirini %60 artırır.', cost:60,  maxPerRegion:3, effectText:'+%60 Altın',    cdKey:'mine'     },
+  barracks: { id:'barracks', name:'Kışla',           icon:'🏰', desc:'Profesyonel askerler yetiştirir. Savunma +%40.',       cost:80,  maxPerRegion:2, effectText:'+%40 Savunma',  cdKey:'barracks' },
+  market:   { id:'market',   name:'Ticaret Pazarı',  icon:'⚖️',  desc:'Ticaret yolları kontrolü. Her tur +25 altın.',         cost:100, maxPerRegion:2, effectText:'+25 Altın/tur', cdKey:'market'   },
+  forge:    { id:'forge',    name:'Silah Dövme',     icon:'⚒️',  desc:'Usta demirciler. Tüm saldırılar +%30 güç.',            cost:200, maxPerRegion:1, effectText:'+%30 Saldırı',  cdKey:'forge'    },
+};
+
+const STATE_NAMES = [
+  'Kuzey İmparatorluğu','Güney Krallığı','Doğu Cumhuriyeti','Batı Federasyonu',
+  'Demir Taç','Altın Şafak','Kızıl Ordu','Yeşil Yol',
+  'Mavi Dalga','Mor Gül','Siyah Güneş','Beyaz Ay',
+  'Çelik Yumruk','Taş Kalp','Ateş Nehri','Buz Kalesi',
+  'Rüzgar Vadisi','Gölge Ormanı','Yıldız Geçidi','Deniz Efendisi',
+];
+
+const PLAYER_ID = 0;
+
+// ═══════════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════════
+let game = {
+  speed: 1,
+  time: 0,
+  running: false,
+  selected: null,
+  lastTick: null,
+  player: {
+    gold: 200,
+    units: { infantry:20, archer:0, cavalry:0, siege:0 },
+    cooldowns: {},
+    stats: { battles:0, wins:0, losses:0, goldEarned:0, unitsRecruited:0, factoriesBuilt:0 }
+  },
+  regions: [],
+  states: [],
+  newLogs: 0,
+};
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+function initGame() {
+  const total = CONFIG.COLS * CONFIG.ROWS;
+  game.regions = Array.from({length: total}, (_, i) => ({
+    id: i, owner: -1,
+    army: Math.floor(Math.random() * 6) + 2,
+    mines: 0, barracks: 0, markets: 0, forges: 0,
+    baseIncome: Math.floor(Math.random() * 12) + 8,
+  }));
+
+  game.states = Array.from({length: CONFIG.NUM_STATES}, (_, i) => ({
+    id: i,
+    name: i === PLAYER_ID ? 'Sen' : (STATE_NAMES[i % STATE_NAMES.length] + (i >= STATE_NAMES.length ? ' '+ Math.floor(i/STATE_NAMES.length+1) : '')),
+    hue: (i * 360 / CONFIG.NUM_STATES + Math.random() * 30) % 360,
+    gold: i === PLAYER_ID ? 200 : Math.floor(Math.random() * 80) + 40,
+    army: i === PLAYER_ID ? 20 : Math.floor(Math.random() * 15) + 5,
+    nextAction: Math.random() * CONFIG.AI_INTERVAL,
+    regions: 0,
+  }));
+
+  // Distribute starts
+  const used = new Set();
+  for (let i = 0; i < CONFIG.NUM_STATES; i++) {
+    let pos;
+    let attempts = 0;
+    do {
+      const base = Math.floor((i / CONFIG.NUM_STATES) * total);
+      pos = Math.max(0, Math.min(total-1, base + Math.floor(Math.random() * 10) - 5));
+      attempts++;
+    } while (used.has(pos) && attempts < 50);
+    if (used.has(pos)) {
+      for (let j = 0; j < total; j++) { if (!used.has(j)) { pos = j; break; } }
+    }
+    used.add(pos);
+    game.regions[pos].owner = i;
+    game.regions[pos].army = game.states[i].army;
+  }
+
+  // Player starts center
+  const center = Math.floor(CONFIG.ROWS / 2) * CONFIG.COLS + Math.floor(CONFIG.COLS / 2);
+  game.regions[center].owner = PLAYER_ID;
+  game.regions[center].army = 20;
+  game.selected = center;
+
+  game.player = {
+    gold: 200,
+    units: { infantry:20, archer:0, cavalry:0, siege:0 },
+    cooldowns: {},
+    stats: { battles:0, wins:0, losses:0, goldEarned:0, unitsRecruited:0, factoriesBuilt:0 }
+  };
+  game.time = 0;
+  game.newLogs = 0;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CANVAS
+// ═══════════════════════════════════════════════════════════
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+let cellW, cellH;
+
+function resizeCanvas() {
+  const wrap = document.getElementById('map-wrap');
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  cellW = canvas.width  / CONFIG.COLS;
+  cellH = canvas.height / CONFIG.ROWS;
+  if (game.running) drawMap();
+}
+window.addEventListener('resize', resizeCanvas);
+
+// ═══════════════════════════════════════════════════════════
+//  DRAWING
+// ═══════════════════════════════════════════════════════════
+function drawMap() {
+  ctx.fillStyle = '#05070a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Subtle grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x <= canvas.width; x += cellW) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+  for (let y = 0; y <= canvas.height; y += cellH) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+
+  game.regions.forEach(reg => drawRegion(reg));
+}
+
+function drawRegion(reg) {
+  const col = reg.id % CONFIG.COLS;
+  const row = Math.floor(reg.id / CONFIG.COLS);
+  const x = col * cellW + 1, y = row * cellH + 1;
+  const w = cellW - 2,       h = cellH - 2;
+
+  const state    = game.states[reg.owner];
+  const isPlayer = reg.owner === PLAYER_ID;
+  const isSel    = game.selected === reg.id;
+  const isNbEnemy = isPlayerNeighbor(reg.id) && reg.owner !== PLAYER_ID && reg.owner >= 0;
+
+  // Fill
+  if (isPlayer) {
+    ctx.fillStyle = '#1a3d5c';
+  } else if (reg.owner < 0) {
+    ctx.fillStyle = '#1a1a1a';
+  } else {
+    ctx.fillStyle = `hsl(${state.hue}, 50%, 25%)`;
+  }
+  ctx.fillRect(x, y, w, h);
+
+  // Neighbor enemy highlight
+  if (isNbEnemy) {
+    ctx.fillStyle = 'rgba(231,76,60,0.18)';
+    ctx.fillRect(x, y, w, h);
+  }
+
+  // Border
+  if (isSel) {
+    ctx.save();
+    ctx.shadowColor = '#d4af37';
+    ctx.shadowBlur  = 15;
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth   = 2;
+    ctx.strokeRect(x-1, y-1, w+2, h+2);
+    ctx.restore();
+  } else {
+    ctx.strokeStyle = isPlayer ? '#4a9ede' : (reg.owner < 0 ? '#333' : `hsl(${state.hue}, 70%, 45%)`);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, w, h);
+  }
+
+  // Factory dots
+  const facs = reg.mines + reg.barracks + reg.markets + reg.forges;
+  if (facs > 0 && w > 18) {
+    const colors = [];
+    for (let i=0;i<reg.mines;i++)    colors.push('#f39c12');
+    for (let i=0;i<reg.barracks;i++) colors.push('#2980b9');
+    for (let i=0;i<reg.markets;i++)  colors.push('#27ae60');
+    for (let i=0;i<reg.forges;i++)   colors.push('#d4af37');
+    colors.slice(0,4).forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(x+3+i*5, y+3, 4, 4);
+    });
+  }
+
+  // Army number — FIX: font size as string, not template literal with px inside ${}
+  if (w > 22 && h > 18) {
+    const fs = Math.max(8, Math.min(11, Math.floor(w / 4)));
+    ctx.font = `bold ${fs}px Cinzel, serif`;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(reg.army.toString(), x + w/2, y + h/2);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INPUT
+// ═══════════════════════════════════════════════════════════
+canvas.addEventListener('click', handleInput);
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  handleInput({ clientX: t.clientX, clientY: t.clientY });
+}, { passive: false });
+
+canvas.addEventListener('mousemove', e => {
+  const tt = document.getElementById('tooltip');
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top)  * (canvas.height / rect.height);
+  const col = Math.floor(mx / cellW);
+  const row = Math.floor(my / cellH);
+  if (col >= 0 && col < CONFIG.COLS && row >= 0 && row < CONFIG.ROWS) {
+    const reg = game.regions[row * CONFIG.COLS + col];
+    const st  = game.states[reg.owner];
+    tt.style.display = 'block';
+    tt.style.left = (e.clientX + 14) + 'px';
+    tt.style.top  = (e.clientY + 14) + 'px';
+    tt.innerHTML = `<div class="tooltip-title">Bölge #${reg.id}</div>
+      <div class="tooltip-row"><span>Sahip</span><span>${st?.name || 'Bağımsız'}</span></div>
+      <div class="tooltip-row"><span>Ordu</span><span>${reg.army}</span></div>
+      <div class="tooltip-row"><span>Gelir</span><span>${calcIncome(reg)}/tur</span></div>
+      <div class="tooltip-row"><span>Savunma</span><span>%${calcDefense(reg)}</span></div>`;
+  } else {
+    tt.style.display = 'none';
+  }
+});
+canvas.addEventListener('mouseleave', () => { document.getElementById('tooltip').style.display='none'; });
+
+function handleInput(e) {
+  if (!game.running) return;
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top)  * (canvas.height / rect.height);
+  const col = Math.floor(mx / cellW);
+  const row = Math.floor(my / cellH);
+  if (col >= 0 && col < CONFIG.COLS && row >= 0 && row < CONFIG.ROWS) {
+    const prev = game.selected;
+    game.selected = row * CONFIG.COLS + col;
+    if (prev !== game.selected) { drawMap(); updateSelection(); }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════
+function getNeighbors(id) {
+  const r = Math.floor(id / CONFIG.COLS), c = id % CONFIG.COLS;
+  const nb = [];
+  if (r > 0)              nb.push(id - CONFIG.COLS);
+  if (r < CONFIG.ROWS-1)  nb.push(id + CONFIG.COLS);
+  if (c > 0)              nb.push(id - 1);
+  if (c < CONFIG.COLS-1)  nb.push(id + 1);
+  return nb;
+}
+
+function isPlayerNeighbor(id) {
+  return getNeighbors(id).some(n => game.regions[n]?.owner === PLAYER_ID);
+}
+
+function getStateRegions(sid) {
+  return game.regions.filter(r => r.owner === sid);
+}
+
+function calcIncome(reg) {
+  return reg.baseIncome + reg.mines * Math.floor(reg.baseIncome * 0.6) + reg.markets * 25;
+}
+
+function calcDefense(reg) {
+  return 100 + reg.barracks * 40 + reg.forges * 20;
+}
+
+function calcPower() {
+  let p = 0;
+  for (const t in game.player.units) p += game.player.units[t] * UNITS[t].power;
+  return Math.floor(p);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════════════════════════════
+function actionAttack() {
+  if (game.selected == null) return;
+  const reg = game.regions[game.selected];
+  if (reg.owner === PLAYER_ID) { notify('Kendi bölgenize saldıramazsınız!','error'); return; }
+  if (!isPlayerNeighbor(game.selected)) { notify('Bu bölge menzil dışında!','error'); return; }
+
+  const now = performance.now();
+  if (now < (game.player.cooldowns.attack || 0)) {
+    notify(`Saldırı için ${Math.ceil((game.player.cooldowns.attack - now)/1000)} saniye bekleyin`,'error');
+    return;
+  }
+
+  const myRegs = getStateRegions(PLAYER_ID);
+  if (myRegs.length === 0) return;
+
+  game.player.stats.battles++;
+  const atkPow = calcPower() + myRegs.length * 2;
+  const enemyRegs = reg.owner >= 0 ? getStateRegions(reg.owner).length : 0;
+  const defPow = reg.army * (calcDefense(reg) / 100) + enemyRegs;
+  const won = Math.random() < atkPow / (atkPow + defPow);
+
+  if (won) {
+    const losses = Math.floor(Math.random() * 3) + 1;
+    reduceUnits(losses);
+    reg.owner = PLAYER_ID;
+    reg.army  = Math.max(1, Math.floor(atkPow * 0.1));
+    const inc = calcIncome(reg);
+    game.player.gold += inc;
+    game.player.stats.goldEarned += inc;
+    game.player.stats.wins++;
+    spawnCombatText(game.selected, `+${inc}💰`, true);
+    addLog(`⚔ Bölge #${game.selected} fethedildi! Kayıp: ${losses} birim`, 'war');
+    notify('Zafer! Yeni bölge fethedildi.','success');
+  } else {
+    const losses = Math.floor(Math.random() * 5) + 2;
+    reduceUnits(losses);
+    reg.army = Math.max(1, reg.army - Math.floor(losses / 2));
+    game.player.stats.losses++;
+    spawnCombatText(game.selected, 'BAŞARISIZ', false);
+    addLog(`💀 Bölge #${game.selected} saldırısı başarısız! Kayıp: ${losses}`, 'war');
+    notify('Saldırı başarısız!','error');
+  }
+
+  game.player.cooldowns.attack = now + CONFIG.CD.attack;
+  updateUI(); drawMap(); checkEnd();
+}
+
+function reduceUnits(amount) {
+  const total = Math.max(1, calcPower());
+  for (const t in game.player.units) {
+    const ratio = (game.player.units[t] * UNITS[t].power) / total;
+    game.player.units[t] = Math.max(0, Math.floor(game.player.units[t] - amount * ratio / UNITS[t].power));
+  }
+  game.states[PLAYER_ID].army = calcPower();
+}
+
+function recruitUnit(type) {
+  const unit = UNITS[type];
+  const now  = performance.now();
+  if (now < (game.player.cooldowns[type] || 0)) {
+    notify(`${unit.name} için ${Math.ceil((game.player.cooldowns[type]-now)/1000)} saniye bekleyin`,'error');
+    return;
+  }
+  if (game.player.gold < unit.cost) { notify(`Yetersiz altın! Gerekli: ${unit.cost}💰`,'error'); return; }
+  if (game.player.units[type] >= unit.max) { notify('Maksimum birlik sayısına ulaşıldı!','error'); return; }
+
+  const amount = type === 'infantry' ? Math.floor(Math.random()*5)+5 :
+                 type === 'archer'   ? Math.floor(Math.random()*3)+3 :
+                 type === 'cavalry'  ? Math.floor(Math.random()*2)+2 : 1;
+
+  game.player.gold -= unit.cost;
+  game.player.units[type] += amount;
+  game.player.stats.unitsRecruited += amount;
+  game.states[PLAYER_ID].army = calcPower();
+  game.player.cooldowns[type] = now + CONFIG.CD[type];
+
+  if (game.selected != null && game.regions[game.selected].owner === PLAYER_ID)
+    game.regions[game.selected].army += Math.floor(amount * 0.3);
+
+  addLog(`${unit.icon} ${amount} ${unit.name} alındı`, 'info');
+  notify(`${amount} ${unit.name} birliğine katıldı!`, 'success');
+  updateUI(); drawMap();
+}
+
+function buildFactory(type) {
+  if (game.selected == null) { notify('Önce haritadan bölge seçin!','error'); return; }
+  const reg = game.regions[game.selected];
+  if (reg.owner !== PLAYER_ID) { notify('Sadece kendi bölgelerinize fabrika kurabilirsiniz!','error'); return; }
+
+  const fac = FACTORIES[type];
+  const now = performance.now();
+  const cdKey = fac.cdKey;
+
+  if (now < (game.player.cooldowns[cdKey] || 0)) {
+    notify(`${fac.name} için ${Math.ceil((game.player.cooldowns[cdKey]-now)/1000)} saniye bekleyin`,'error');
+    return;
+  }
+  if (game.player.gold < fac.cost) { notify(`Yetersiz altın! Gerekli: ${fac.cost}💰`,'error'); return; }
+
+  const fieldKey = type + 's'; // e.g. "mines", "barracks"
+  if (reg[fieldKey] >= fac.maxPerRegion) { notify('Bu bölgede maksimum fabrika sayısına ulaşıldı!','error'); return; }
+
+  game.player.gold -= fac.cost;
+  reg[fieldKey]++;
+  game.player.stats.factoriesBuilt++;
+  game.player.cooldowns[cdKey] = now + CONFIG.CD[cdKey];
+
+  addLog(`${fac.icon} ${fac.name} kuruldu!`, 'win');
+  notify(`${fac.name} inşası tamamlandı!`,'success');
+  updateUI(); drawMap(); renderFactoryPanel();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AI
+// ═══════════════════════════════════════════════════════════
+let nextIncome = CONFIG.INCOME_TICK;
+
+function updateAI(dt) {
+  for (let i = 1; i < CONFIG.NUM_STATES; i++) {
+    const state = game.states[i];
+    state.nextAction -= dt * game.speed;
+    if (state.nextAction > 0) continue;
+    state.nextAction = CONFIG.AI_INTERVAL + Math.random() * 1000;
+
+    const myRegs = getStateRegions(i);
+    if (myRegs.length === 0) continue;
+
+    // Income
+    const income = myRegs.reduce((s,r) => s + calcIncome(r), 0);
+    state.gold += income * 0.5;
+    state.army += myRegs.length * 0.3;
+
+    // Build
+    if (state.gold > 60 && Math.random() < 0.25) {
+      const reg = myRegs[Math.floor(Math.random() * myRegs.length)];
+      const types = ['mines','barracks','markets'];
+      const t = types[Math.floor(Math.random() * types.length)];
+      const max = t === 'mines' ? 3 : 2;
+      if (reg[t] < max) { reg[t]++; state.gold -= 60; }
+    }
+
+    // Recruit
+    if (state.gold > 25 && Math.random() < 0.4) {
+      state.gold -= 25;
+      state.army += Math.floor(Math.random() * 4) + 2;
+    }
+
+    // Attack
+    if (state.army > 5 && Math.random() < 0.5) {
+      const targets = [];
+      myRegs.forEach(r => getNeighbors(r.id).forEach(n => {
+        if (game.regions[n].owner !== i) targets.push(n);
+      }));
+      if (targets.length > 0) {
+        const tid = targets[Math.floor(Math.random() * targets.length)];
+        const treg = game.regions[tid];
+        const atkPow = state.army + myRegs.length;
+        const defPow = treg.army * (calcDefense(treg) / 100) + (treg.owner >= 0 ? getStateRegions(treg.owner).length : 0);
+        if (Math.random() < atkPow / (atkPow + defPow)) {
+          if (treg.owner === PLAYER_ID) {
+            addLog(`⚠ ${state.name} bölge #${tid} saldırdı!`, 'war');
+            notify(`⚠ ${state.name} bölgenize saldırdı!`, 'error');
+          }
+          treg.owner = i;
+          treg.army  = Math.floor(state.army * 0.2);
+        }
+      }
+    }
+  }
+}
+
+function updateIncome(dt) {
+  nextIncome -= dt * game.speed;
+  if (nextIncome > 0) return;
+  nextIncome = CONFIG.INCOME_TICK;
+  const myRegs = getStateRegions(PLAYER_ID);
+  const income = myRegs.reduce((s,r) => s + calcIncome(r), 0);
+  if (income > 0) {
+    game.player.gold += income;
+    game.player.stats.goldEarned += income;
+    addLog(`💰 Gelir: +${income} altın (${myRegs.length} bölge)`, 'gold');
+  }
+  game.states[PLAYER_ID].army = calcPower();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GAME LOOP
+// ═══════════════════════════════════════════════════════════
+function gameLoop(ts) {
+  if (!game.running) return;
+  if (!game.lastTick) game.lastTick = ts;
+  const dt = Math.min(ts - game.lastTick, 100);
+  game.lastTick = ts;
+  game.time += dt * game.speed;
+
+  updateAI(dt);
+  updateIncome(dt);
+  updateCooldownBars();
+  updateHeaderUI();
+  updateTimerUI();
+
+  if (getStateRegions(PLAYER_ID).length === 0) { endGame(false); return; }
+  requestAnimationFrame(gameLoop);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI UPDATES
+// ═══════════════════════════════════════════════════════════
+function updateHeaderUI() {
+  const myRegs = getStateRegions(PLAYER_ID);
+  document.getElementById('r-gold').textContent = Math.floor(game.player.gold);
+  document.getElementById('r-army').textContent = calcPower();
+  document.getElementById('r-fac').textContent  = myRegs.reduce((s,r) => s + r.mines + r.barracks + r.markets + r.forges, 0);
+  document.getElementById('r-reg').textContent  = myRegs.length;
+
+  // Rank
+  const scores = game.states.map((st,i) => ({i, regs: getStateRegions(i).length + st.army * 0.1}));
+  scores.sort((a,b) => b.regs - a.regs);
+  const rank = scores.findIndex(s => s.i === PLAYER_ID) + 1;
+  document.getElementById('r-rank').textContent = '#' + rank;
+}
+
+function updateTimerUI() {
+  const secs = Math.floor(game.time / 1000);
+  const mins = Math.floor(secs / 60);
+  const s    = secs % 60;
+  document.getElementById('timer').textContent = String(mins).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function updateCooldownBars() {
+  const now = performance.now();
+  const atkCD = game.player.cooldowns.attack || 0;
+  const recCD = Math.max(...Object.values(UNITS).map(u => game.player.cooldowns[u.id] || 0));
+  const bldCD = Math.max(...Object.values(FACTORIES).map(f => game.player.cooldowns[f.cdKey] || 0));
+
+  const pct = (cd) => {
+    if (cd <= now) return 100;
+    const total = CONFIG.CD.attack;
+    return Math.max(0, Math.min(100, 100 - (cd - now) / (total) * 100));
+  };
+
+  document.getElementById('cd-atk').style.width = pct(atkCD) + '%';
+  document.getElementById('cd-rec').style.width = pct(recCD) + '%';
+  document.getElementById('cd-bld').style.width = pct(bldCD) + '%';
+}
+
+function updateSelection() {
+  if (game.selected == null) return;
+  const reg  = game.regions[game.selected];
+  const state = game.states[reg.owner];
+  const isOwn   = reg.owner === PLAYER_ID;
+  const isNb    = isPlayerNeighbor(game.selected);
+  const isEnemy = reg.owner >= 0 && reg.owner !== PLAYER_ID;
+
+  document.getElementById('sel-name').textContent   = state?.name || 'Keşfedilmemiş';
+  document.getElementById('sel-army').textContent   = reg.army;
+  document.getElementById('sel-def').textContent    = '%' + calcDefense(reg);
+  document.getElementById('sel-income').textContent = calcIncome(reg) + '/tur';
+  document.getElementById('sel-fac').textContent    = reg.mines + reg.barracks + reg.markets + reg.forges;
+
+  const sst = document.getElementById('sel-status');
+  if (isOwn) {
+    sst.textContent = 'SİZİN'; sst.className = 'sel-status status-own';
+  } else if (isEnemy) {
+    sst.textContent = 'DÜŞMAN'; sst.className = 'sel-status status-enemy';
+  } else {
+    sst.textContent = 'BAĞIMSIZ'; sst.className = 'sel-status status-neutral';
+  }
+
+  document.getElementById('btn-atk').disabled = !(isEnemy && isNb);
+  document.getElementById('btn-rec').disabled = !isOwn;
+  document.getElementById('btn-bld').disabled = !isOwn;
+
+  const hints = isOwn
+    ? 'Kendi bölgeniz. Asker alın veya fabrika kurun.'
+    : (isEnemy && isNb)
+    ? 'Saldırabilirsiniz! Gücünüzü kontrol edin.'
+    : isNb
+    ? 'Bağımsız bölge. Saldırarak ele geçirebilirsiniz.'
+    : 'Menzil dışında. Önce komşu bölgeleri fethetmelisiniz.';
+  document.getElementById('hint-txt').textContent = hints;
+}
+
+function updateUI() {
+  updateHeaderUI();
+  updateSelection();
+  renderArmyPanel();
+  renderRankPanel();
+  renderFactoryPanel();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PANEL RENDERS
+// ═══════════════════════════════════════════════════════════
+function renderArmyPanel() {
+  const power = calcPower();
+  document.getElementById('power-total').textContent = power;
+  document.getElementById('power-bar').style.width = Math.min(100, power / 5) + '%';
+
+  const ul = document.getElementById('unit-list');
+  ul.innerHTML = '';
+  const now = performance.now();
+
+  Object.values(UNITS).forEach(unit => {
+    const count = game.player.units[unit.id];
+    const cd    = game.player.cooldowns[unit.id] || 0;
+    const onCD  = now < cd;
+    const canAff = game.player.gold >= unit.cost;
+
+    const card = document.createElement('div');
+    card.className = 'unit-card';
+    card.innerHTML = `
+      <div class="unit-icon-wrap" style="border-color:${unit.color}22">
+        <span style="font-size:28px">${unit.icon}</span>
+      </div>
+      <div class="unit-info">
+        <div class="unit-name" style="color:${unit.color}">${unit.name}</div>
+        <div class="unit-desc">${unit.desc}</div>
+        <div class="unit-stats">
+          <div class="unit-stat"><span>⚔</span><span class="unit-stat-val">${unit.attack}</span></div>
+          <div class="unit-stat"><span>🛡</span><span class="unit-stat-val">${unit.defense}</span></div>
+          <div class="unit-stat"><span>⚡</span><span class="unit-stat-val">${unit.power}</span></div>
+          <div class="unit-stat"><span>💰</span><span class="unit-stat-val">${unit.cost}</span></div>
+        </div>
+        <button class="recruit-btn" onclick="recruitUnit('${unit.id}')" ${onCD || !canAff ? 'disabled' : ''}>
+          ${onCD ? `${Math.ceil((cd-now)/1000)}s bekleniyor...` : `Asker Al (${unit.cost}💰)`}
+        </button>
+      </div>
+      <div class="unit-count">
+        <div class="unit-count-val">${count}</div>
+        <div class="unit-count-max">/ ${unit.max}</div>
+      </div>`;
+    ul.appendChild(card);
+  });
+}
+
+function renderFactoryPanel() {
+  const fl = document.getElementById('factory-list');
+  fl.innerHTML = '';
+  const myRegs = getStateRegions(PLAYER_ID);
+  const now = performance.now();
+
+  let totalFacs = 0;
+  Object.values(FACTORIES).forEach(fac => {
+    const owned   = myRegs.reduce((s,r) => s + (r[fac.id+'s'] || 0), 0);
+    totalFacs += owned;
+    const cd      = game.player.cooldowns[fac.cdKey] || 0;
+    const onCD    = now < cd;
+    const canAff  = game.player.gold >= fac.cost;
+    const hasOwn  = game.selected != null && game.regions[game.selected]?.owner === PLAYER_ID;
+    const regCount = game.selected != null ? (game.regions[game.selected]?.[fac.id+'s'] || 0) : 0;
+    const maxed   = hasOwn && regCount >= fac.maxPerRegion;
+
+    const card = document.createElement('div');
+    card.className = 'factory-card' + (canAff && hasOwn && !onCD && !maxed ? ' can-build' : '');
+    card.innerHTML = `
+      <div class="factory-header">
+        <div class="factory-icon">${fac.icon}</div>
+        <div class="factory-title">
+          <div class="factory-name">${fac.name}</div>
+          <div class="factory-desc">${fac.desc}</div>
+        </div>
+        <div class="factory-count">
+          <div class="factory-owned">${owned}</div>
+          <div class="factory-max">toplam</div>
+        </div>
+      </div>
+      <div class="factory-body">
+        <div class="factory-effect">
+          <span class="effect-icon">${fac.icon}</span>
+          <span class="effect-text">Etki: <span class="effect-val">${fac.effectText}</span></span>
+        </div>
+        <button class="factory-build-btn" onclick="buildFactory('${fac.id}')"
+          ${onCD || !canAff || !hasOwn || maxed ? 'disabled' : ''}>
+          ${!hasOwn    ? 'Seçili bölgeniz yok' :
+            maxed      ? 'Bu bölgede maksimum' :
+            onCD       ? `${Math.ceil((cd-now)/1000)}s bekleniyor...` :
+            !canAff    ? `Yetersiz altın (${fac.cost}💰)` :
+            `🔨 İnşa Et — ${fac.cost}💰 | Maks ${fac.maxPerRegion}/bölge`}
+        </button>
+      </div>`;
+    fl.appendChild(card);
+  });
+
+  document.getElementById('fac-total').textContent = totalFacs;
+  // Show badge if affordable
+  const canBuildAny = Object.values(FACTORIES).some(f => game.player.gold >= f.cost);
+  document.getElementById('badge-factory').classList.toggle('show', canBuildAny && myRegs.length > 0);
+}
+
+function renderRankPanel() {
+  const rl = document.getElementById('rank-list');
+  rl.innerHTML = '';
+  const scores = game.states.map((st,i) => ({
+    i, name: st.name, hue: st.hue,
+    regs: getStateRegions(i).length,
+    army: Math.floor(st.army + (i === PLAYER_ID ? calcPower() : 0)),
+    score: getStateRegions(i).length * 100 + (i === PLAYER_ID ? calcPower() : Math.floor(st.army)),
+  }));
+  scores.sort((a,b) => b.score - a.score);
+
+  scores.slice(0, 20).forEach((s, pos) => {
+    const isP = s.i === PLAYER_ID;
+    const div = document.createElement('div');
+    div.className = 'rank-item' + (isP ? ' player' : '');
+    div.innerHTML = `
+      <div class="rank-pos ${pos < 3 ? 'top' : ''}">${pos+1}</div>
+      <div class="rank-flag" style="background:hsl(${s.hue},50%,25%);border-color:hsl(${s.hue},60%,35%)">
+        ${isP ? '👑' : pos===0?'🥇':pos===1?'🥈':pos===2?'🥉':'⚔'}
+      </div>
+      <div class="rank-info">
+        <div class="rank-name">${s.name}${isP?' (Sen)':''}</div>
+        <div class="rank-territories">${s.regs} bölge</div>
+      </div>
+      <div class="rank-power">
+        <div class="rank-power-val">${s.score}</div>
+        <div class="rank-power-label">Güç</div>
+      </div>`;
+    rl.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  COMBAT TEXT
+// ═══════════════════════════════════════════════════════════
+function spawnCombatText(regId, text, isPositive) {
+  const col = regId % CONFIG.COLS;
+  const row = Math.floor(regId / CONFIG.COLS);
+  const wrap = document.getElementById('map-wrap');
+  const rect  = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = (col + 0.5) * cellW / scaleX;
+  const y = (row + 0.5) * cellH / scaleY;
+
+  const el = document.createElement('div');
+  el.className = 'combat-text ' + (isPositive ? 'combat-gold' : 'combat-error');
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LOG & NOTIFY
+// ═══════════════════════════════════════════════════════════
+const MAX_LOGS = 80;
+function addLog(text, type='info') {
+  const ls = document.getElementById('log-scroll');
+  const secs = Math.floor(game.time / 1000);
+  const mins = Math.floor(secs / 60);
+  const s    = secs % 60;
+  const div  = document.createElement('div');
+  div.className = 'log-entry log-' + type;
+  div.innerHTML = `<span class="log-time">${String(mins).padStart(2,'0')}:${String(s).padStart(2,'0')}</span>${text}`;
+  ls.insertBefore(div, ls.firstChild);
+  while (ls.children.length > MAX_LOGS) ls.removeChild(ls.lastChild);
+
+  game.newLogs++;
+  const b = document.getElementById('badge-log');
+  b.textContent = Math.min(game.newLogs, 99);
+  b.classList.add('show');
+}
+
+let notifTimer;
+function notify(msg, type='info') {
+  const cont = document.getElementById('notif-container');
+  const n = document.createElement('div');
+  n.className = 'notif ' + type;
+  n.textContent = msg;
+  cont.appendChild(n);
+  setTimeout(() => { n.style.opacity='0'; n.style.transition='opacity 0.4s'; setTimeout(()=>n.remove(), 400); }, 2800);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TABS & SPEED
+// ═══════════════════════════════════════════════════════════
+let activeTab = 'map';
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-'   + name).classList.add('active');
+  activeTab = name;
+
+  if (name === 'log') {
+    game.newLogs = 0;
+    document.getElementById('badge-log').classList.remove('show');
+  }
+  if (name === 'army')    renderArmyPanel();
+  if (name === 'factory') renderFactoryPanel();
+  if (name === 'rank')    renderRankPanel();
+}
+
+function setSpeed(s) {
+  game.speed = s;
+  ['sp1','sp3','sp10'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('sp' + s).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  END GAME
+// ═══════════════════════════════════════════════════════════
+function checkEnd() {
+  const total  = game.regions.length;
+  const myRegs = getStateRegions(PLAYER_ID);
+  if (myRegs.length >= total * 0.5) endGame(true);
+}
+
+function endGame(won) {
+  game.running = false;
+  const secs = Math.floor(game.time / 1000);
+  const mins = Math.floor(secs / 60);
+  document.getElementById('end-title').textContent = won ? '🏆 ZAFER!' : '💀 YENİLGİ!';
+  document.getElementById('end-desc').textContent  = won
+    ? 'Haritanın yarısından fazlasına hükmettiniz!'
+    : 'Tüm bölgeleriniz düştü. Ordularınız dağıldı.';
+  document.getElementById('end-regions').textContent = getStateRegions(PLAYER_ID).length;
+  document.getElementById('end-battles').textContent = game.player.stats.battles;
+  document.getElementById('end-gold').textContent    = Math.floor(game.player.stats.goldEarned);
+  document.getElementById('end-time').textContent    = String(mins).padStart(2,'0') + ':' + String(secs%60).padStart(2,'0');
+  document.getElementById('end-overlay').classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  START
+// ═══════════════════════════════════════════════════════════
+function startGame() {
+  document.getElementById('intro-overlay').classList.remove('active');
+  initGame();
+  game.running = true;
+  resizeCanvas();
+  drawMap();
+  updateUI();
+  addLog('⚔ Savaş başladı! İmparatorluğunuzu kurun.', 'system');
+  requestAnimationFrame(gameLoop);
+}
+</script>
+</body>
+</html>
