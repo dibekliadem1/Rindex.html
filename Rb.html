@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>RIVAL REGIONS — ULTIMATE STRATEGY v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #03050a; --panel: #0a0d14; --border: #1a2130;
+    --gold: #d4af37; --gold2: #f0c850; --text: #e2e8f0; --text2: #8f9bb3;
+    --red: #c0392b; --green: #27ae60; --blue: #2980b9;
+  }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; display: flex; flex-direction: column; }
+
+  /* UI ELEMENTS */
+  #header { height: 60px; background: #080b12; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 15px; gap: 15px; z-index: 20; }
+  .resource-bar { display: flex; gap: 8px; flex: 1; justify-content: center; }
+  .res-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 5px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; color: var(--gold2); }
+  
+  #tabs { height: 50px; display: flex; background: var(--panel); border-bottom: 1px solid var(--border); }
+  .tab-btn { flex: 1; background: transparent; border: none; color: var(--text2); font-family: 'Cinzel', serif; font-size: 10px; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s; }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(212,175,55,0.05); }
+
+  #content { flex: 1; position: relative; overflow: hidden; }
+  .tab-panel { position: absolute; inset: 0; display: none; flex-direction: column; }
+  .tab-panel.active { display: flex; }
+
+  #map-container { flex: 1; position: relative; background: #000; overflow: hidden; }
+  canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+  #action-bar { height: 70px; background: var(--panel); border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 15px; gap: 10px; }
+  .btn { padding: 10px 20px; border-radius: 6px; border: 1px solid; cursor: pointer; font-family: 'Cinzel'; font-size: 12px; transition: 0.2s; background: transparent; }
+  .btn:disabled { opacity: 0.2; cursor: not-allowed; }
+  .btn-atk { color: var(--red); border-color: var(--red); }
+  .btn-rec { color: var(--blue); border-color: var(--blue); }
+
+  /* LISTS & RANKING */
+  .list-container { flex: 1; overflow-y: auto; padding: 15px; }
+  .rank-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); gap: 10px; }
+  .log-entry { font-size: 12px; padding: 8px; border-left: 3px solid #333; margin-bottom: 5px; background: rgba(255,255,255,0.02); }
+
+  /* FLOATING TEXT */
+  .combat-text { position: absolute; font-family: 'Cinzel'; font-weight: 900; pointer-events: none; animation: floatUp 1.2s forwards; text-shadow: 2px 2px 0 #000; z-index: 100; transform: translateX(-50%); }
+  @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -50px); } }
+
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal { background: #0a0d14; padding: 30px; border: 1px solid var(--gold); border-radius: 10px; text-align: center; max-width: 400px; }
+</style>
+</head>
+<body>
+
+<div id="intro" class="overlay">
+  <div class="modal">
+    <h1 style="font-family:'Cinzel'; color:var(--gold);">RIVAL REGIONS 2.0</h1>
+    <p style="margin: 15px 0; color:var(--text2);">Dünya savaşına hoş geldin. Bölgeleri fethet, ekonomini büyüt ve liderliğe oyna.</p>
+    <button class="btn btn-rec" onclick="initGame()" style="width:100%; color:var(--gold); border-color:var(--gold);">SAVAŞI BAŞLAT</button>
+  </div>
+</div>
+
+<div id="header">
+  <div style="font-family:'Cinzel'; color:var(--gold); font-weight:900;">RR 2.0</div>
+  <div class="resource-bar">
+    <div class="res-item">💰 <span id="ui-gold">0</span></div>
+    <div class="res-item">⚔️ <span id="ui-power">0</span></div>
+    <div class="res-item">🗺️ <span id="ui-regs">0</span></div>
+  </div>
+  <div id="timer" style="font-size: 12px; color: var(--gold);">00:00</div>
+</div>
+
+<div id="tabs">
+  <button class="tab-btn active" onclick="showTab('map', this)">HARİTA</button>
+  <button class="tab-btn" onclick="showTab('army', this)">ORDU</button>
+  <button class="tab-btn" onclick="showTab('rank', this)">SIRALAMA</button>
+  <button class="tab-btn" onclick="showTab('log', this)">GÜNLÜK</button>
+</div>
+
+<div id="content">
+  <div id="tab-map" class="tab-panel active">
+    <div id="map-container"><canvas id="map-canvas"></canvas></div>
+    <div id="action-bar">
+      <div id="sel-info" style="flex:1; font-size:11px;">
+        <b id="sel-name" style="color:var(--gold); display:block; font-size:13px;">Bölge Seçilmedi</b>
+        <span id="sel-stats">Bir yere tıkla.</span>
+      </div>
+      <button id="btn-atk" class="btn btn-atk" onclick="playerAttack()" disabled>SALDIR</button>
+    </div>
+  </div>
+  <div id="tab-army" class="tab-panel"><div class="list-container" id="army-list"></div></div>
+  <div id="tab-rank" class="tab-panel"><div class="list-container" id="rank-list"></div></div>
+  <div id="tab-log" class="tab-panel"><div class="list-container" id="log-list"></div></div>
+</div>
+
+<script>
+// --- CONFIG & STATE ---
+const COLS = 20, ROWS = 15, NUM_STATES = 50;
+const PLAYER_ID = 0;
+let game = {
+  running: false, selected: null, gold: 300, 
+  units: { infantry: 10, tank: 0 },
+  regions: [], states: [], logs: [], time: 0
+};
+
+const UNIT_DATA = {
+  infantry: { name: "Piyade", cost: 20, power: 1.5, icon: "🛡️" },
+  tank: { name: "Tank", cost: 100, power: 8, icon: "🚜" }
+};
+
+// --- INITIALIZATION ---
+function initGame() {
+  document.getElementById('intro').style.display = 'none';
+  
+  // States
+  for(let i=0; i<NUM_STATES; i++) {
+    game.states[i] = {
+      id: i,
+      name: i === PLAYER_ID ? "OYUNCU" : "DEVLET " + i,
+      color: i === PLAYER_ID ? "#2980b9" : `hsl(${(i * 137) % 360}, 60%, 45%)`,
+      gold: 100,
+      power: 10,
+      isAggressive: Math.random() > 0.5
+    };
+  }
+
+  // Regions
+  for(let i=0; i < COLS*ROWS; i++) {
+    let owner = Math.floor(Math.random() * NUM_STATES);
+    game.regions[i] = { id: i, owner: owner, army: Math.floor(Math.random()*10) + 5 };
+  }
+
+  game.running = true;
+  resize();
+  updateLoop();
+  addLog("Savaş dünyası oluşturuldu. Başarılar komutan!", "green");
+}
+
+// --- CORE ENGINE ---
+function updateLoop() {
+  if(!game.running) return;
+
+  // AI & Economy
+  if(Math.random() < 0.1) runAIStep();
+  if(game.time % 50 === 0) game.gold += (getStateRegions(PLAYER_ID).length * 2) + 5;
+
+  game.time++;
+  updateUI();
+  draw();
+  requestAnimationFrame(updateLoop);
+}
+
+function runAIStep() {
+  let aiId = Math.floor(Math.random() * NUM_STATES);
+  if(aiId === PLAYER_ID) return;
+
+  let regs = getStateRegions(aiId);
+  if(regs.length === 0) return;
+
+  let source = regs[Math.floor(Math.random() * regs.length)];
+  let neighbors = getNeighbors(source.id);
+  let target = game.regions[neighbors[Math.floor(Math.random() * neighbors.length)]];
+
+  if(target.owner !== aiId) {
+    let force = source.army * (Math.random() + 0.5);
+    let defense = target.army;
+
+    if(force > defense) {
+      let oldOwner = target.owner;
+      target.owner = aiId;
+      target.army = Math.floor(force * 0.4);
+      if(oldOwner === PLAYER_ID) {
+          addLog(`KRİTİK: Bölge #${target.id} düşman eline geçti!`, "red");
+          spawnCombatText(target.id, "KAYIP!", "red");
+      }
+    }
+  } else {
+      source.army += 1; // Otomatik ordu büyümesi
+  }
+}
+
+// --- PLAYER ACTIONS ---
+function playerAttack() {
+  if(game.selected === null) return;
+  let target = game.regions[game.selected];
+  let pPower = calcTotalPower();
+
+  if(game.gold < 10) { addLog("Yetersiz altın!", "red"); return; }
+  
+  game.gold -= 10;
+  let chance = pPower / (pPower + target.army * 2);
+  
+  if(Math.random() < chance) {
+    target.owner = PLAYER_ID;
+    target.army = Math.floor(pPower * 0.2) + 1;
+    addLog(`ZAFER: Bölge #${target.id} fethedildi!`, "green");
+    spawnCombatText(target.id, "FETİH! ⚔️", "#2ecc71");
+    // Ordu kaybı
+    game.units.infantry = Math.floor(game.units.infantry * 0.9);
+  } else {
+    addLog("BOZGUN: Saldırı püskürtüldü!", "red");
+    spawnCombatText(target.id, "BAŞARISIZ", "red");
+    game.units.infantry = Math.floor(game.units.infantry * 0.7);
+  }
+  updateUI();
+}
+
+function buyUnit(type) {
+  let u = UNIT_DATA[type];
+  if(game.gold >= u.cost) {
+    game.gold -= u.cost;
+    game.units[type]++;
+    addLog(`${u.name} orduna katıldı.`, "blue");
+    renderArmy();
+  }
+}
+
+// --- UI & DRAWING ---
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+let cellW, cellH;
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  game.regions.forEach((r, i) => {
+    let x = (i % COLS) * cellW;
+    let y = Math.floor(i / COLS) * cellH;
+    
+    ctx.fillStyle = game.states[r.owner].color;
+    ctx.fillRect(x, y, cellW-1, cellH-1);
+    
+    if(game.selected === i) {
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x+2, y+2, cellW-5, cellH-5);
+    }
+    
+    // Army count display
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.font = "8px Arial";
+    ctx.fillText(r.army, x+5, y+12);
+  });
+}
+
+function updateUI() {
+  document.getElementById('ui-gold').textContent = game.gold;
+  document.getElementById('ui-power').textContent = calcTotalPower().toFixed(1);
+  document.getElementById('ui-regs').textContent = getStateRegions(PLAYER_ID).length;
+  
+  let m = Math.floor(game.time / 600);
+  let s = Math.floor((game.time % 600) / 10);
+  document.getElementById('timer').textContent = `${m}:${s < 10 ? '0'+s : s}`;
+}
+
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+
+  if(tab === 'army') renderArmy();
+  if(tab === 'rank') renderRank();
+}
+
+function renderArmy() {
+  let c = document.getElementById('army-list');
+  c.innerHTML = `<h3>KIŞLA (Altın: ${game.gold})</h3><br>`;
+  for(let id in UNIT_DATA) {
+    let u = UNIT_DATA[id];
+    c.innerHTML += `
+      <div class="rank-item" style="background:rgba(255,255,255,0.02); margin-bottom:10px; border-radius:8px;">
+        <div style="font-size:24px;">${u.icon}</div>
+        <div style="flex:1">
+          <b>${u.name}</b> (Güç: ${u.power})<br>
+          Envanter: ${game.units[id]}
+        </div>
+        <button class="btn btn-rec" onclick="buyUnit('${id}')">${u.cost}💰 AL</button>
+      </div>`;
+  }
+}
+
+function renderRank() {
+  let c = document.getElementById('rank-list');
+  let sorted = [...game.states].sort((a,b) => getStateRegions(b.id).length - getStateRegions(a.id).length);
+  c.innerHTML = "<h3>DÜNYA SIRALAMASI</h3><br>";
+  sorted.slice(0, 15).forEach((s, i) => {
+    c.innerHTML += `
+      <div class="rank-item">
+        <b>#${i+1}</b>
+        <div style="width:12px; height:12px; background:${s.color}; border-radius:50%;"></div>
+        <div style="flex:1">${s.name}</div>
+        <div style="color:var(--gold2)">${getStateRegions(s.id).length} Bölge</div>
+      </div>`;
+  });
+}
+
+// --- HELPERS ---
+function resize() {
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
+  cellW = canvas.width / COLS;
+  cellH = canvas.height / ROWS;
+}
+
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const c = Math.floor(x / cellW);
+  const r = Math.floor(y / cellH);
+  game.selected = r * COLS + c;
+  
+  let reg = game.regions[game.selected];
+  let owner = game.states[reg.owner];
+  document.getElementById('sel-name').textContent = owner.name;
+  document.getElementById('sel-stats').textContent = `Ordu: ${reg.army} | Durum: ${reg.owner === PLAYER_ID ? 'Senin' : 'Düşman'}`;
+  document.getElementById('btn-atk').disabled = reg.owner === PLAYER_ID || !isPlayerNeighbor(game.selected);
+});
+
+function getNeighbors(id) {
+  let r = Math.floor(id/COLS), c = id%COLS, n = [];
+  if(r>0) n.push(id-COLS); if(r<ROWS-1) n.push(id+COLS);
+  if(c>0) n.push(id-1); if(c<COLS-1) n.push(id+1);
+  return n;
+}
+
+function isPlayerNeighbor(id) { return getNeighbors(id).some(n => game.regions[n].owner === PLAYER_ID); }
+function getStateRegions(sid) { return game.regions.filter(r => r.owner === sid); }
+function calcTotalPower() { return (game.units.infantry * UNIT_DATA.infantry.power) + (game.units.tank * UNIT_DATA.tank.power); }
+function addLog(m, color) { 
+    game.logs.unshift(`<div class="log-entry" style="border-color:${color}">${m}</div>`);
+    document.getElementById('log-list').innerHTML = game.logs.slice(0,30).join('');
+}
+function spawnCombatText(rid, txt, col) {
+  const rect = canvas.getBoundingClientRect();
+  const x = ((rid % COLS) * cellW + cellW/2) * (rect.width/canvas.width);
+  const y = (Math.floor(rid/COLS) * cellH + cellH/2) * (rect.height/canvas.height);
+  const el = document.createElement('div');
+  el.className = 'combat-text';
+  el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.color = col;
+  el.textContent = txt;
+  document.getElementById('map-container').appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+window.onresize = resize;
+</script>
+</body>
+</html>
