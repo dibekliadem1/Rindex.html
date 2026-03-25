@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RIVAL REGIONS: IMPERIUM — Efsanevi Strateji</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #030508;
+  --panel: #080b10;
+  --panel2: #0c1016;
+  --panel3: #111520;
+  --border: #1a2330;
+  --border2: #253040;
+  --gold: #d4af37;
+  --gold2: #f0c850;
+  --gold3: #ffe080;
+  --text: #d0c8b8;
+  --text2: #7a7568;
+  --red: #c0392b;
+  --red2: #e74c3c;
+  --green: #27ae60;
+  --green2: #2ecc71;
+  --blue: #2980b9;
+  --blue2: #3498db;
+  --purple: #8e44ad;
+  --orange: #e67e22;
+  --cyan: #17a2b8;
+  
+  --tab-h: 54px;
+  --hdr-h: 60px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); }
+body {
+  color:var(--text);
+  font-family:'Crimson Pro', serif;
+  display:flex; flex-direction:column;
+  background: 
+    radial-gradient(ellipse at 20% 0%, rgba(212,175,55,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(41,128,185,0.03) 0%, transparent 50%),
+    var(--bg);
+}
+
+/* ═══ HEADER ═══ */
+#hdr {
+  height:var(--hdr-h);
+  background: linear-gradient(180deg, #0a0e14 0%, #05070a 100%);
+  border-bottom: 1px solid var(--border);
+  display:flex; align-items:center; padding:0 14px; gap:12px;
+  flex-shrink:0; z-index:20;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.6);
+}
+#logo {
+  font-family:'Cinzel',serif; font-size:15px; font-weight:900;
+  color:var(--gold); letter-spacing:3px;
+  text-shadow: 0 0 30px rgba(212,175,55,0.4);
+  white-space:nowrap; display:flex; align-items:center; gap:8px;
+}
+#logo::before {
+  content:'⚔'; font-size:20px;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.1)} }
+
+#res-bar {
+  display:flex; gap:8px; flex:1; justify-content:center;
+  overflow-x:auto; scrollbar-width:none;
+}
+#res-bar::-webkit-scrollbar { display:none; }
+.res-item {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  padding: 5px 10px; border-radius: 4px;
+  min-width: 60px; position:relative;
+}
+.res-item::after {
+  content:''; position:absolute; inset:-1px;
+  background: linear-gradient(135deg, transparent 50%, rgba(212,175,55,0.05) 100%);
+  border-radius: 4px; pointer-events:none;
+}
+.res-icon { font-size:14px; }
+.res-val { 
+  font-family:'Cinzel',serif; font-size:14px; font-weight:700;
+  color: var(--gold2);
+}
+.res-label { font-size:8px; color: var(--text2); text-transform:uppercase; letter-spacing:1px; }
+
+#game-controls {
+  display:flex; gap:6px; align-items:center;
+  background:var(--panel2); padding:4px; border-radius:4px;
+  border:1px solid var(--border);
+}
+.spd-btn {
+  font-family:'Cinzel',serif; font-size:9px; font-weight:600;
+  padding:6px 10px; border:none; background:transparent;
+  color:var(--text2); cursor:pointer; transition:all 0.2s;
+  border-radius:3px; letter-spacing:1px;
+}
+.spd-btn.active {
+  background:var(--gold); color:#000;
+  box-shadow:0 0 15px rgba(212,175,55,0.3);
+}
+#timer {
+  font-family:'Cinzel',serif; font-size:11px; color:var(--gold);
+  padding:6px 12px; border-left:1px solid var(--border);
+  min-width:60px; text-align:center;
+}
+
+/* ═══ TABS ═══ */
+#tabs {
+  height:var(--tab-h);
+  display:flex; background:var(--panel);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0; z-index:15;
+  padding:0 10px; gap:4px;
+}
+.tab-btn {
+  flex:1; border:none; background:transparent;
+  color:var(--text2);
+  font-family:'Cinzel',serif; font-size:9px; font-weight:600;
+  letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:5px;
+  border-bottom:3px solid transparent;
+  transition:all 0.3s; position:relative;
+  border-radius:4px 4px 0 0; margin-top:4px;
+}
+.tab-btn .tab-icon { font-size:20px; transition:all 0.3s; filter:grayscale(0.3); }
+.tab-btn:hover { background:rgba(255,255,255,0.02); }
+.tab-btn:hover .tab-icon { transform:translateY(-2px); filter:grayscale(0); }
+.tab-btn.active {
+  color:var(--gold); background:rgba(212,175,55,0.05);
+  border-bottom-color:var(--gold);
+}
+.tab-btn.active .tab-icon { filter:grayscale(0) drop-shadow(0 0 8px rgba(212,175,55,0.4)); }
+.tab-badge {
+  position:absolute; top:4px; right:calc(50% - 22px);
+  background:var(--red); color:#fff;
+  font-size:8px; font-weight:700;
+  padding:2px 6px; border-radius:10px;
+  font-family:'Crimson Pro',serif;
+  display:none; animation:pulse 1.5s infinite;
+}
+.tab-badge.show { display:block; }
+
+/* ═══ CONTENT ═══ */
+#content { flex:1; overflow:hidden; position:relative; }
+.tab-panel {
+  position:absolute; inset:0;
+  display:none; flex-direction:column;
+  overflow:hidden;
+}
+.tab-panel.active { display:flex; }
+
+/* ═══ MAP PANEL ═══ */
+#map-container { flex:1; position:relative; overflow:hidden; }
+#map-canvas { display:block; cursor:crosshair; touch-action:none; }
+
+.combat-float {
+  position:absolute; font-family:'Cinzel',serif; font-weight:700;
+  font-size:16px; pointer-events:none;
+  animation:floatCombat 2s ease-out forwards;
+  text-shadow:0 2px 8px rgba(0,0,0,0.9);
+}
+@keyframes floatCombat {
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  50%{opacity:1}
+  100%{opacity:0;transform:translateY(-50px) scale(0.7)}
+}
+.float-damage { color:var(--red2); }
+.float-heal { color:var(--green2); }
+.float-gold { color:var(--gold2); }
+.float-xp { color:var(--cyan); }
+
+/* Selection Panel */
+#selection-panel {
+  background: linear-gradient(180deg, var(--panel2) 0%, var(--panel) 100%);
+  border-top:1px solid var(--border);
+  padding:12px 15px;
+  display:flex; flex-direction:column; gap:10px;
+  flex-shrink:0; max-height:45%;
+  overflow-y:auto;
+}
+.sel-header {
+  display:flex; justify-content:space-between; align-items:flex-start; gap:15px;
+}
+.sel-title-group { flex:1; }
+.sel-name {
+  font-family:'Cinzel',serif; font-size:18px; color:var(--gold2);
+  font-weight:700; margin-bottom:4px;
+  display:flex; align-items:center; gap:10px;
+}
+.sel-subtitle {
+  font-size:11px; color:var(--text2);
+  display:flex; gap:15px; flex-wrap:wrap;
+}
+.sel-badge {
+  font-size:9px; text-transform:uppercase; letter-spacing:1px;
+  padding:3px 10px; border-radius:3px; font-family:'Cinzel',serif;
+}
+.badge-owned { background:rgba(39,174,96,0.15); color:var(--green2); border:1px solid var(--green); }
+.badge-enemy { background:rgba(192,57,43,0.15); color:var(--red2); border:1px solid var(--red); }
+.badge-neutral { background:rgba(138,132,120,0.1); color:var(--text2); border:1px solid var(--text2); }
+.badge-ally { background:rgba(41,128,185,0.15); color:var(--blue2); border:1px solid var(--blue); }
+
+.sel-stats-grid {
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;
+}
+.stat-box {
+  background:var(--panel3); border:1px solid var(--border);
+  border-radius:4px; padding:10px; text-align:center;
+  transition:all 0.2s;
+}
+.stat-box:hover { border-color:var(--border2); transform:translateY(-2px); }
+.stat-icon { font-size:16px; margin-bottom:4px; }
+.stat-value { font-family:'Cinzel',serif; font-size:16px; color:var(--gold2); font-weight:700; }
+.stat-label { font-size:9px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
+
+.sel-buildings {
+  display:flex; gap:8px; flex-wrap:wrap;
+}
+.building-tag {
+  background:var(--panel3); border:1px solid var(--border);
+  padding:5px 10px; border-radius:3px; font-size:11px;
+  display:flex; align-items:center; gap:6px;
+}
+.building-tag.max { border-color:var(--gold); background:rgba(212,175,55,0.1); }
+
+/* Action Bar */
+#action-bar {
+  background:var(--panel); border-top:1px solid var(--border);
+  padding:12px 15px; display:flex; gap:10px; align-items:center;
+  flex-shrink:0; flex-wrap:wrap;
+}
+.action-group { display:flex; gap:8px; flex-wrap:wrap; }
+.btn {
+  font-family:'Cinzel',serif; font-size:11px; font-weight:600;
+  letter-spacing:1px; text-transform:uppercase;
+  padding:12px 20px; border:1px solid; background:transparent;
+  cursor:pointer; transition:all 0.25s; border-radius:4px;
+  display:flex; align-items:center; gap:8px; position:relative;
+  overflow:hidden;
+}
+.btn::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  opacity:0; transition:opacity 0.2s;
+}
+.btn:hover::before { opacity:1; }
+.btn:disabled { opacity:0.3; cursor:not-allowed; filter:grayscale(1); }
+
+.btn-attack { color:var(--red2); border-color:var(--red); }
+.btn-attack:not(:disabled):hover { 
+  background:rgba(192,57,43,0.2); 
+  box-shadow:0 0 25px rgba(192,57,43,0.3);
+  transform:translateY(-2px);
+}
+.btn-recruit { color:var(--blue2); border-color:var(--blue); }
+.btn-recruit:not(:disabled):hover { 
+  background:rgba(41,128,185,0.2);
+  box-shadow:0 0 25px rgba(41,128,185,0.3);
+  transform:translateY(-2px);
+}
+.btn-build { color:var(--green2); border-color:var(--green); }
+.btn-build:not(:disabled):hover { 
+  background:rgba(39,174,96,0.2);
+  box-shadow:0 0 25px rgba(39,174,96,0.3);
+  transform:translateY(-2px);
+}
+.btn-diplo { color:var(--purple); border-color:var(--purple); }
+.btn-diplo:not(:disabled):hover { 
+  background:rgba(142,68,173,0.2);
+  box-shadow:0 0 25px rgba(142,68,173,0.3);
+  transform:translateY(-2px);
+}
+
+.cooldown-bar {
+  position:absolute; bottom:0; left:0; height:3px;
+  background:rgba(255,255,255,0.3); transition:width 0.1s;
+}
+.cd-red { background:var(--red); }
+.cd-blue { background:var(--blue); }
+.cd-green { background:var(--green); }
+
+#hint-box {
+  flex:1; min-width:200px;
+  background:var(--panel2); border:1px solid var(--border);
+  border-radius:4px; padding:10px 15px;
+  font-size:11px; color:var(--text2); line-height:1.5;
+}
+#hint-box strong { color:var(--gold2); }
+
+/* ═══ PANEL STYLES ═══ */
+.panel-header {
+  background:var(--panel2); border-bottom:1px solid var(--border);
+  padding:15px 20px; display:flex; justify-content:space-between; align-items:center;
+  flex-shrink:0;
+}
+.panel-title { font-family:'Cinzel',serif; font-size:14px; color:var(--gold); letter-spacing:2px; }
+
+.power-widget {
+  display:flex; align-items:center; gap:20px;
+}
+.power-total { text-align:right; }
+.power-number { font-family:'Cinzel',serif; font-size:32px; color:var(--gold2); font-weight:900; }
+.power-label { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
+.power-bar-container {
+  width:150px; height:6px; background:rgba(255,255,255,0.05);
+  border-radius:3px; overflow:hidden; position:relative;
+}
+.power-bar-fill {
+  height:100%; background:linear-gradient(90deg, var(--blue), var(--gold), var(--red));
+  border-radius:3px; transition:width 0.5s ease;
+  position:relative;
+}
+.power-bar-fill::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation:shimmer 2s infinite;
+}
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+
+/* Army Panel */
+#army-content, #factory-content, #diplo-content, #quest-content, #rank-content, #log-content { flex:1; overflow-y:auto; padding:20px; }
+.unit-grid {
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:15px;
+}
+.unit-card {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:6px; overflow:hidden; transition:all 0.3s;
+  position:relative;
+}
+.unit-card:hover { 
+  border-color:var(--border2); 
+  transform:translateY(-3px);
+  box-shadow:0 15px 40px rgba(0,0,0,0.4);
+}
+.unit-header {
+  padding:15px; display:flex; gap:15px; align-items:center;
+  background:var(--panel2); border-bottom:1px solid var(--border);
+}
+.unit-icon-box {
+  width:60px; height:60px; background:var(--panel3);
+  border:2px solid var(--border); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:32px; position:relative;
+}
+.unit-level {
+  position:absolute; bottom:-8px; right:-8px;
+  background:var(--gold); color:#000;
+  font-family:'Cinzel',serif; font-size:10px; font-weight:700;
+  padding:3px 8px; border-radius:10px;
+}
+.unit-title-group { flex:1; }
+.unit-name { font-family:'Cinzel',serif; font-size:16px; color:var(--text); margin-bottom:4px; }
+.unit-type { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
+.unit-count-box { text-align:right; }
+.unit-count { font-family:'Cinzel',serif; font-size:28px; color:var(--gold2); font-weight:700; }
+.unit-max { font-size:10px; color:var(--text2); }
+
+.unit-stats-row {
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:10px;
+  padding:15px; border-bottom:1px solid var(--border);
+}
+.unit-stat {
+  text-align:center; padding:10px;
+  background:var(--panel2); border-radius:4px;
+}
+.unit-stat-icon { font-size:14px; margin-bottom:4px; }
+.unit-stat-val { font-family:'Cinzel',serif; font-size:14px; color:var(--gold2); font-weight:600; }
+.unit-stat-name { font-size:9px; color:var(--text2); text-transform:uppercase; }
+
+.unit-actions {
+  padding:15px; display:flex; gap:10px;
+}
+.btn-recruit-unit {
+  flex:1; padding:12px; font-family:'Cinzel',serif; font-size:11px;
+  text-transform:uppercase; letter-spacing:1px;
+  border:1px solid var(--blue); color:var(--blue2);
+  background:transparent; cursor:pointer; transition:all 0.2s;
+  border-radius:4px; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.btn-recruit-unit:hover:not(:disabled) { background:rgba(41,128,185,0.15); border-color:var(--blue2); }
+.btn-recruit-unit:disabled { opacity:0.3; cursor:not-allowed; }
+
+/* Factory Panel */
+.factory-grid {
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:15px;
+}
+.factory-card {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:6px; overflow:hidden; transition:all 0.3s;
+}
+.factory-card.can-build { border-color:var(--gold); box-shadow:0 0 20px rgba(212,175,55,0.1); }
+.factory-card:hover { transform:translateY(-3px); box-shadow:0 15px 40px rgba(0,0,0,0.4); }
+.factory-visual {
+  height:100px; background:linear-gradient(180deg, var(--panel2) 0%, var(--panel3) 100%);
+  display:flex; align-items:center; justify-content:center; font-size:48px;
+  position:relative; overflow:hidden;
+}
+.factory-visual::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(circle at center, transparent 0%, var(--panel) 100%);
+}
+.factory-info { padding:15px; }
+.factory-name { font-family:'Cinzel',serif; font-size:14px; color:var(--text); margin-bottom:5px; }
+.factory-desc { font-size:11px; color:var(--text2); line-height:1.5; margin-bottom:12px; }
+.factory-effects {
+  display:flex; flex-wrap:wrap; gap:8px; margin-bottom:15px;
+}
+.effect-tag {
+  background:var(--panel2); border:1px solid var(--border);
+  padding:4px 10px; border-radius:3px; font-size:10px;
+  display:flex; align-items:center; gap:5px;
+}
+.effect-tag.positive { color:var(--green2); border-color:var(--green); }
+.factory-build {
+  display:flex; gap:10px; align-items:center;
+}
+.factory-count { font-family:'Cinzel',serif; font-size:20px; color:var(--gold2); }
+.factory-max { font-size:10px; color:var(--text2); }
+.btn-build-factory {
+  flex:1; padding:12px; font-family:'Cinzel',serif; font-size:11px;
+  text-transform:uppercase; letter-spacing:1px;
+  border:1px solid var(--green); color:var(--green2);
+  background:transparent; cursor:pointer; transition:all 0.2s;
+  border-radius:4px;
+}
+.btn-build-factory:hover:not(:disabled) { background:rgba(39,174,96,0.15); }
+.btn-build-factory:disabled { opacity:0.3; cursor:not-allowed; }
+
+/* Diplomacy Panel */
+.diplo-grid {
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:15px;
+}
+.faction-card {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:6px; overflow:hidden; transition:all 0.3s;
+}
+.faction-card:hover { border-color:var(--border2); }
+.faction-header {
+  padding:15px; display:flex; gap:15px; align-items:center;
+  background:var(--panel2); border-bottom:1px solid var(--border);
+}
+.faction-flag {
+  width:50px; height:50px; border-radius:50%;
+  border:3px solid var(--border); display:flex;
+  align-items:center; justify-content:center; font-size:24px;
+}
+.faction-info { flex:1; }
+.faction-name { font-family:'Cinzel',serif; font-size:14px; color:var(--text); margin-bottom:3px; }
+.faction-rank { font-size:10px; color:var(--text2); }
+.faction-relation {
+  padding:5px 12px; border-radius:20px; font-size:10px;
+  text-transform:uppercase; letter-spacing:1px; font-weight:600;
+}
+.relation-war { background:rgba(192,57,43,0.2); color:var(--red2); border:1px solid var(--red); }
+.relation-peace { background:rgba(138,132,120,0.1); color:var(--text2); border:1px solid var(--text2); }
+.relation-ally { background:rgba(41,128,185,0.2); color:var(--blue2); border:1px solid var(--blue); }
+.relation-vassal { background:rgba(142,68,173,0.2); color:var(--purple); border:1px solid var(--purple); }
+
+.faction-stats {
+  display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;
+  padding:15px; border-bottom:1px solid var(--border);
+}
+.f-stat { text-align:center; }
+.f-stat-val { font-family:'Cinzel',serif; font-size:16px; color:var(--gold2); }
+.f-stat-label { font-size:9px; color:var(--text2); text-transform:uppercase; }
+
+.faction-actions {
+  padding:15px; display:flex; gap:10px; flex-wrap:wrap;
+}
+.btn-diplo-action {
+  flex:1; min-width:100px; padding:10px;
+  font-family:'Cinzel',serif; font-size:10px;
+  text-transform:uppercase; letter-spacing:1px;
+  border:1px solid var(--border); color:var(--text);
+  background:transparent; cursor:pointer; transition:all 0.2s;
+  border-radius:4px;
+}
+.btn-diplo-action:hover { border-color:var(--gold); color:var(--gold); }
+
+/* Quests Panel */
+.quest-list { display:flex; flex-direction:column; gap:15px; }
+.quest-card {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:6px; padding:15px; display:flex; gap:15px;
+  align-items:center; transition:all 0.3s;
+}
+.quest-card:hover { border-color:var(--border2); transform:translateX(5px); }
+.quest-card.completed { opacity:0.6; border-color:var(--green); }
+.quest-icon {
+  width:50px; height:50px; background:var(--panel2);
+  border:2px solid var(--border); border-radius:8px;
+  display:flex; align-items:center; justify-content:center; font-size:24px;
+}
+.quest-info { flex:1; }
+.quest-title { font-family:'Cinzel',serif; font-size:14px; color:var(--text); margin-bottom:4px; }
+.quest-desc { font-size:11px; color:var(--text2); line-height:1.5; }
+.quest-reward { display:flex; gap:15px; margin-top:8px; }
+.reward-tag {
+  font-size:10px; color:var(--gold2); display:flex; align-items:center; gap:4px;
+}
+.quest-progress { width:120px; }
+.progress-bar {
+  height:6px; background:rgba(255,255,255,0.05);
+  border-radius:3px; overflow:hidden; margin-bottom:5px;
+}
+.progress-fill {
+  height:100%; background:linear-gradient(90deg, var(--gold), var(--gold2));
+  border-radius:3px; transition:width 0.5s;
+}
+.progress-text { font-size:10px; color:var(--text2); text-align:center; }
+
+/* Rankings Panel */
+.leaderboard {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:6px; overflow:hidden;
+}
+.lb-header {
+  display:grid; grid-template-columns:50px 1fr 100px 100px;
+  padding:15px; background:var(--panel2);
+  border-bottom:1px solid var(--border);
+  font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:1px;
+}
+.lb-row {
+  display:grid; grid-template-columns:50px 1fr 100px 100px;
+  padding:15px; border-bottom:1px solid var(--border);
+  align-items:center; transition:all 0.2s;
+}
+.lb-row:hover { background:var(--panel2); }
+.lb-row.player { background:rgba(212,175,55,0.1); }
+.lb-rank { font-family:'Cinzel',serif; font-size:18px; color:var(--text2); text-align:center; }
+.lb-rank.top { color:var(--gold); font-size:24px; }
+.lb-faction { display:flex; align-items:center; gap:12px; }
+.lb-flag { width:36px; height:36px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:16px; }
+.lb-name { font-family:'Cinzel',serif; font-size:13px; color:var(--text); }
+.lb-name span { font-size:10px; color:var(--text2); display:block; margin-top:2px; }
+.lb-territories { text-align:center; font-family:'Cinzel',serif; font-size:14px; color:var(--gold2); }
+.lb-power { text-align:center; font-family:'Cinzel',serif; font-size:14px; color:var(--text); }
+
+/* Log Panel */
+.log-filters { display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap; }
+.log-filter {
+  padding:8px 15px; background:var(--panel2); border:1px solid var(--border);
+  border-radius:4px; font-size:11px; color:var(--text2); cursor:pointer; transition:all 0.2s;
+}
+.log-filter:hover, .log-filter.active { border-color:var(--gold); color:var(--gold); }
+.log-timeline { position:relative; padding-left:30px; }
+.log-timeline::before {
+  content:''; position:absolute; left:10px; top:0; bottom:0;
+  width:2px; background:var(--border);
+}
+.log-entry {
+  position:relative; margin-bottom:15px; padding:15px;
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:6px; border-left:3px solid var(--border);
+  animation:fadeIn 0.4s ease;
+}
+.log-entry::before {
+  content:''; position:absolute; left:-26px; top:20px;
+  width:12px; height:12px; background:var(--panel);
+  border:2px solid var(--border); border-radius:50%;
+}
+.log-entry.war { border-left-color:var(--red); }
+.log-entry.war::before { border-color:var(--red); background:var(--red2); }
+.log-entry.diplo { border-left-color:var(--blue); }
+.log-entry.diplo::before { border-color:var(--blue); background:var(--blue2); }
+.log-entry.econ { border-left-color:var(--green); }
+.log-entry.econ::before { border-color:var(--green); background:var(--green2); }
+.log-entry.quest { border-left-color:var(--purple); }
+.log-entry.quest::before { border-color:var(--purple); background:var(--purple); }
+
+.log-time { font-size:10px; color:var(--text2); margin-bottom:5px; font-family:'Cinzel',serif; }
+.log-title { font-family:'Cinzel',serif; font-size:13px; color:var(--text); margin-bottom:5px; }
+.log-desc { font-size:11px; color:var(--text2); line-height:1.5; }
+
+/* Overlays */
+.overlay {
+  position:fixed; inset:0;
+  background:rgba(3,5,8,0.95);
+  z-index:1000; display:none;
+  align-items:center; justify-content:center;
+  padding:20px; backdrop-filter:blur(10px);
+}
+.overlay.active { display:flex; }
+.modal {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:8px; max-width:500px; width:100%;
+  max-height:90vh; overflow-y:auto;
+  box-shadow:0 30px 60px rgba(0,0,0,0.5);
+  animation:modalIn 0.4s ease;
+}
+@keyframes modalIn {
+  from{opacity:0;transform:scale(0.9) translateY(20px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+.modal-header {
+  padding:25px; text-align:center;
+  background:linear-gradient(180deg, var(--panel2) 0%, var(--panel) 100%);
+  border-bottom:1px solid var(--border);
+}
+.modal-title { font-family:'Cinzel',serif; font-size:28px; color:var(--gold); margin-bottom:10px; }
+.modal-subtitle { font-size:14px; color:var(--text2); line-height:1.6; }
+.modal-body { padding:25px; }
+.modal-footer { padding:0 25px 25px; display:flex; gap:15px; }
+.modal-btn {
+  flex:1; padding:15px; font-family:'Cinzel',serif; font-size:13px;
+  text-transform:uppercase; letter-spacing:2px;
+  border:1px solid var(--gold); color:var(--gold);
+  background:rgba(212,175,55,0.1); cursor:pointer;
+  transition:all 0.3s; border-radius:4px;
+}
+.modal-btn:hover { background:rgba(212,175,55,0.2); box-shadow:0 0 30px rgba(212,175,55,0.2); }
+
+.battle-preview {
+  display:grid; grid-template-columns:1fr auto 1fr; gap:20px;
+  align-items:center; margin:20px 0;
+}
+.battle-side { text-align:center; padding:20px; background:var(--panel2); border-radius:8px; border:1px solid var(--border); }
+.battle-side.attacker { border-color:var(--red); }
+.battle-side.defender { border-color:var(--blue); }
+.battle-icon { font-size:40px; margin-bottom:10px; }
+.battle-power { font-family:'Cinzel',serif; font-size:24px; color:var(--gold2); margin-bottom:5px; }
+.battle-label { font-size:11px; color:var(--text2); text-transform:uppercase; }
+.battle-vs { font-family:'Cinzel',serif; font-size:32px; color:var(--text2); }
+.battle-chance { text-align:center; margin-top:15px; padding:15px; background:var(--panel2); border-radius:8px; }
+.chance-bar { height:8px; background:rgba(255,255,255,0.05); border-radius:4px; overflow:hidden; margin-bottom:8px; }
+.chance-fill { height:100%; background:linear-gradient(90deg, var(--red), var(--gold)); border-radius:4px; transition:width 0.5s; }
+.chance-text { font-family:'Cinzel',serif; font-size:14px; color:var(--gold2); }
+
+.end-stats { display:grid; grid-template-columns:repeat(2, 1fr); gap:15px; margin:20px 0; }
+.end-stat { text-align:center; padding:15px; background:var(--panel2); border:1px solid var(--border); border-radius:3px; }
+.end-stat-val { font-family:'Cinzel',serif; font-size:28px; color:var(--gold2); margin-bottom:4px; }
+.end-stat-label { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
+
+/* Notifications */
+#notif-container {
+  position:fixed; top:80px; right:15px;
+  z-index:500; display:flex; flex-direction:column; gap:10px;
+  pointer-events:none; max-width:300px;
+}
+.notification {
+  background:var(--panel); border:1px solid var(--border);
+  border-left:4px solid var(--gold); border-radius:4px;
+  padding:15px; box-shadow:0 10px 40px rgba(0,0,0,0.4);
+  animation:notifIn 0.4s ease; pointer-events:auto;
+}
+.notification.error { border-left-color:var(--red); }
+.notification.success { border-left-color:var(--green); }
+.notification.info { border-left-color:var(--blue); }
+.notification.quest { border-left-color:var(--purple); }
+@keyframes notifIn {
+  from{opacity:0;transform:translateX(50px)}
+  to{opacity:1;transform:translateX(0)}
+}
+.notif-title { font-family:'Cinzel',serif; font-size:13px; color:var(--text); margin-bottom:5px; }
+.notif-text { font-size:11px; color:var(--text2); line-height:1.5; }
+
+/* Special Abilities */
+#abilities-bar {
+  position:fixed; bottom:20px; left:50%;
+  transform:translateX(-50%);
+  display:flex; gap:10px; z-index:100;
+  background:var(--panel); border:1px solid var(--border);
+  padding:10px; border-radius:8px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+.ability-btn {
+  width:50px; height:50px; background:var(--panel2);
+  border:2px solid var(--border); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; cursor:pointer; transition:all 0.2s; position:relative;
+}
+.ability-btn:hover:not(:disabled) { border-color:var(--gold); transform:scale(1.1); }
+.ability-btn:disabled { opacity:0.3; cursor:not-allowed; }
+.ability-btn.ready { border-color:var(--gold); box-shadow:0 0 20px rgba(212,175,55,0.3); }
+.ability-cd {
+  position:absolute; bottom:0; left:0; right:0;
+  background:rgba(0,0,0,0.8); color:#fff;
+  font-size:10px; padding:2px; text-align:center;
+}
+
+::-webkit-scrollbar { width:8px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:var(--border2); }
+
+@media (max-width:600px) {
+  .unit-grid, .factory-grid, .diplo-grid { grid-template-columns:1fr; }
+  .sel-stats-grid { grid-template-columns:repeat(2, 1fr); }
+  #abilities-bar { bottom:70px; }
+}
+</style>
+</head>
+<body>
+
+<!-- INTRO OVERLAY -->
+<div class="overlay active" id="intro-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚔ RIVAL REGIONS</div>
+      <div class="modal-subtitle">İmparatorluğunuzu Kurun · Diplomasi Yürütün · Dünyayı Fethedin</div>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid; gap:15px; margin-bottom:25px;">
+        <div style="display:flex; gap:15px; padding:15px; background:var(--panel2); border-radius:8px; border:1px solid var(--border);">
+          <span style="font-size:32px;">🗺️</span>
+          <div>
+            <div style="font-family:'Cinzel',serif; color:var(--gold2); margin-bottom:5px;">600 Bölge Stratejik Harita</div>
+            <div style="font-size:12px; color:var(--text2);">Gerçek zamanlı savaş, kaynak yönetimi ve bölgesel kontrol</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:15px; padding:15px; background:var(--panel2); border-radius:8px; border:1px solid var(--border);">
+          <span style="font-size:32px;">⚔️</span>
+          <div>
+            <div style="font-family:'Cinzel',serif; color:var(--gold2); margin-bottom:5px;">4 Birlik Tipi + Özel Yetenekler</div>
+            <div style="font-size:12px; color:var(--text2);">Piyade, Okçu, Süvari, Mancınık ve komutan yetenekleri</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:15px; padding:15px; background:var(--panel2); border-radius:8px; border:1px solid var(--border);">
+          <span style="font-size:32px;">🤝</span>
+          <div>
+            <div style="font-family:'Cinzel',serif; color:var(--gold2); margin-bottom:5px;">Diplomasi Sistemi</div>
+            <div style="font-size:12px; color:var(--text2);">İttifaklar, barış antlaşmaları, vasallık ve casusluk</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:15px; padding:15px; background:var(--panel2); border-radius:8px; border:1px solid var(--border);">
+          <span style="font-size:32px;">🏆</span>
+          <div>
+            <div style="font-family:'Cinzel',serif; color:var(--gold2); margin-bottom:5px;">Görevler ve Başarımlar</div>
+            <div style="font-size:12px; color:var(--text2);">200+ görev, teknoloji ağacı ve evrimleşen oyun</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="startGame()">⚔ Savaşa Başla</button>
+    </div>
+  </div>
+</div>
+
+<!-- BATTLE MODAL -->
+<div class="overlay" id="battle-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚔ Savaş İlanı</div>
+      <div class="modal-subtitle" id="battle-target">Hedef: Bölge #123</div>
+    </div>
+    <div class="modal-body">
+      <div class="battle-preview">
+        <div class="battle-side attacker">
+          <div class="battle-icon">⚔️</div>
+          <div class="battle-power" id="battle-atk-power">150</div>
+          <div class="battle-label">Saldırı Gücü</div>
+        </div>
+        <div class="battle-vs">VS</div>
+        <div class="battle-side defender">
+          <div class="battle-icon">🛡️</div>
+          <div class="battle-power" id="battle-def-power">120</div>
+          <div class="battle-label">Savunma Gücü</div>
+        </div>
+      </div>
+      <div class="battle-chance">
+        <div class="chance-bar"><div class="chance-fill" id="battle-chance-bar" style="width:55%"></div></div>
+        <div class="chance-text" id="battle-chance-text">Zafer Şansı: %55</div>
+      </div>
+      <div style="margin-top:20px; padding:15px; background:var(--panel2); border-radius:8px; font-size:12px; color:var(--text2); line-height:1.6;">
+        <strong style="color:var(--gold2);">Savaş Kuralları:</strong><br>
+        • Kaybetme durumunda birliklerinizin %30-50'sini kaybedersiniz<br>
+        • Kazanma durumunda bölgeyi ele geçirir ve düşmanın deposunu yağmalarsınız<br>
+        • Her saldırı 6 saniye bekleme süresi gerektirir
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" style="border-color:var(--red); color:var(--red2);" onclick="confirmAttack()">⚔ Saldırı Başlat</button>
+      <button class="modal-btn" onclick="closeModal('battle-overlay')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- END OVERLAY -->
+<div class="overlay" id="end-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="end-title" style="font-size:36px;">🏆 İMPARATOR!</div>
+      <div class="modal-subtitle" id="end-desc">Dünyaya hükmettiniz.</div>
+    </div>
+    <div class="modal-body">
+      <div class="end-stats">
+        <div class="end-stat"><div class="end-stat-val" id="end-regions">0</div><div class="end-stat-label">Fethedilen Bölge</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-battles">0</div><div class="end-stat-label">Savaş</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-gold">0</div><div class="end-stat-label">Kazanılan Altın</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-time">0:00</div><div class="end-stat-label">Oyun Süresi</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="location.reload()">Yeni Oyun</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div id="logo">RIVAL REGIONS</div>
+  <div id="res-bar">
+    <div class="res-item"><span class="res-icon">💰</span><span class="res-val" id="r-gold">200</span><span class="res-label">Altın</span></div>
+    <div class="res-item"><span class="res-icon">⚔️</span><span class="res-val" id="r-army">20</span><span class="res-label">Güç</span></div>
+    <div class="res-item"><span class="res-icon">🏭</span><span class="res-val" id="r-fac">0</span><span class="res-label">Fabrika</span></div>
+    <div class="res-item"><span class="res-icon">🗺️</span><span class="res-val" id="r-reg">1</span><span class="res-label">Bölge</span></div>
+    <div class="res-item"><span class="res-icon">⭐</span><span class="res-val" id="r-xp">0</span><span class="res-label">XP</span></div>
+    <div class="res-item"><span class="res-icon">📊</span><span class="res-val" id="r-rank">#?</span><span class="res-label">Sıra</span></div>
+  </div>
+  <div id="game-controls">
+    <button class="spd-btn active" onclick="setSpeed(1)" id="sp1">×1</button>
+    <button class="spd-btn" onclick="setSpeed(3)" id="sp3">×3</button>
+    <button class="spd-btn" onclick="setSpeed(10)" id="sp10">×10</button>
+    <div id="timer">00:00</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div id="tabs">
+  <button class="tab-btn active" onclick="switchTab('map')" id="tab-map"><span class="tab-icon">🗺️</span><span>Harita</span></button>
+  <button class="tab-btn" onclick="switchTab('army')" id="tab-army"><span class="tab-icon">⚔️</span><span>Ordu</span></button>
+  <button class="tab-btn" onclick="switchTab('factory')" id="tab-factory"><span class="tab-icon">🏭</span><span>Fabrika</span><span class="tab-badge" id="badge-factory">!</span></button>
+  <button class="tab-btn" onclick="switchTab('diplo')" id="tab-diplo"><span class="tab-icon">🤝</span><span>Diplomasi</span><span class="tab-badge" id="badge-diplo">!</span></button>
+  <button class="tab-btn" onclick="switchTab('quest')" id="tab-quest"><span class="tab-icon">🏆</span><span>Görevler</span><span class="tab-badge" id="badge-quest">3</span></button>
+  <button class="tab-btn" onclick="switchTab('rank')" id="tab-rank"><span class="tab-icon">📜</span><span>Sıralama</span></button>
+  <button class="tab-btn" onclick="switchTab('log')" id="tab-log"><span class="tab-icon">📖</span><span>Kayıtlar</span><span class="tab-badge" id="badge-log">0</span></button>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+
+  <!-- MAP -->
+  <div class="tab-panel active" id="panel-map">
+    <div id="map-container"><canvas id="map-canvas"></canvas></div>
+    <div id="selection-panel">
+      <div class="sel-header">
+        <div class="sel-title-group">
+          <div class="sel-name" id="sel-name">Bölge Seçin</div>
+          <div class="sel-subtitle">
+            <span id="sel-coords">Koordinat: --, --</span>
+            <span id="sel-owner">Sahip: --</span>
+            <span id="sel-type">Tip: --</span>
+          </div>
+        </div>
+        <span class="sel-badge badge-neutral" id="sel-badge">SEÇİLMEDİ</span>
+      </div>
+      <div class="sel-stats-grid">
+        <div class="stat-box"><div class="stat-icon">⚔️</div><div class="stat-value" id="sel-army">--</div><div class="stat-label">Ordu</div></div>
+        <div class="stat-box"><div class="stat-icon">🛡️</div><div class="stat-value" id="sel-defense">--</div><div class="stat-label">Savunma</div></div>
+        <div class="stat-box"><div class="stat-icon">💰</div><div class="stat-value" id="sel-income">--</div><div class="stat-label">Gelir/Tur</div></div>
+        <div class="stat-box"><div class="stat-icon">🏭</div><div class="stat-value" id="sel-factories">--</div><div class="stat-label">Fabrika</div></div>
+      </div>
+      <div class="sel-buildings" id="sel-buildings"></div>
+    </div>
+    <div id="action-bar">
+      <div class="action-group">
+        <button class="btn btn-attack" id="btn-attack" onclick="prepareAttack()" disabled>⚔ Saldır<div class="cooldown-bar cd-red" id="cd-attack" style="width:100%"></div></button>
+        <button class="btn btn-recruit" id="btn-recruit" onclick="switchTab('army')" disabled>🛡 Asker Al<div class="cooldown-bar cd-blue" id="cd-recruit" style="width:100%"></div></button>
+        <button class="btn btn-build" id="btn-build" onclick="switchTab('factory')" disabled>🏭 İnşa Et<div class="cooldown-bar cd-green" id="cd-build" style="width:100%"></div></button>
+      </div>
+      <div id="hint-box"><strong>Strateji İpucu:</strong> <span id="hint-text">Haritadan bir bölge seçerek başlayın. Komşu düşman bölgeler kırmızı ile işaretlenir.</span></div>
+    </div>
+  </div>
+
+  <!-- ARMY -->
+  <div class="tab-panel" id="panel-army">
+    <div class="panel-header">
+      <div class="panel-title">⚔ Askerî Güçler</div>
+      <div class="power-widget">
+        <div class="power-total"><div class="power-number" id="power-total">0</div><div class="power-label">Toplam Güç</div></div>
+        <div class="power-bar-container"><div class="power-bar-fill" id="power-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div id="army-content"><div class="unit-grid" id="unit-grid"></div></div>
+  </div>
+
+  <!-- FACTORY -->
+  <div class="tab-panel" id="panel-factory">
+    <div class="panel-header">
+      <div class="panel-title">🏭 Sanayi ve Teknoloji</div>
+      <div class="power-widget"><div class="power-total"><div class="power-number" id="factory-total">0</div><div class="power-label">Fabrika</div></div></div>
+    </div>
+    <div id="factory-content"><div class="factory-grid" id="factory-grid"></div></div>
+  </div>
+
+  <!-- DIPLOMACY -->
+  <div class="tab-panel" id="panel-diplo">
+    <div class="panel-header"><div class="panel-title">🤝 Diplomasi</div><div style="font-size:12px; color:var(--text2);">İttifaklarınız ve Düşmanlarınız</div></div>
+    <div id="diplo-content"><div class="diplo-grid" id="diplo-grid"></div></div>
+  </div>
+
+  <!-- QUESTS -->
+  <div class="tab-panel" id="panel-quest">
+    <div class="panel-header">
+      <div class="panel-title">🏆 Görevler ve Hedefler</div>
+      <div style="font-size:12px; color:var(--text2);">Tamamlanan: <span id="quests-completed">0</span>/20</div>
+    </div>
+    <div id="quest-content"><div class="quest-list" id="quest-list"></div></div>
+  </div>
+
+  <!-- RANKINGS -->
+  <div class="tab-panel" id="panel-rank">
+    <div class="panel-header"><div class="panel-title">📜 Dünya Sıralaması</div><div style="font-size:12px; color:var(--text2);">En güçlü 20 imparatorluk</div></div>
+    <div id="rank-content">
+      <div class="leaderboard">
+        <div class="lb-header"><div>Sıra</div><div>İmparatorluk</div><div>Bölge</div><div>Güç</div></div>
+        <div id="rank-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="tab-panel" id="panel-log">
+    <div class="panel-header">
+      <div class="panel-title">📖 Savaş Kayıtları</div>
+      <div class="log-filters">
+        <button class="log-filter active" onclick="filterLog('all')">Tümü</button>
+        <button class="log-filter" onclick="filterLog('war')">Savaş</button>
+        <button class="log-filter" onclick="filterLog('diplo')">Diplomasi</button>
+        <button class="log-filter" onclick="filterLog('econ')">Ekonomi</button>
+      </div>
+    </div>
+    <div id="log-content"><div class="log-timeline" id="log-timeline"></div></div>
+  </div>
+
+</div>
+
+<!-- SPECIAL ABILITIES -->
+<div id="abilities-bar">
+  <button class="ability-btn ready" id="ability-1" onclick="useAbility('rush')" title="Hücum: 2x saldırı hızı (10s)">⚡<div class="ability-cd" id="cd-ability-1" style="display:none;"></div></button>
+  <button class="ability-btn" id="ability-2" onclick="useAbility('heal')" title="Tedavi: Tüm bölgeler +5 asker">💚<div class="ability-cd" id="cd-ability-2" style="display:none;"></div></button>
+  <button class="ability-btn" id="ability-3" onclick="useAbility('gold')" title="Yağma: Anında +500 altın">💰<div class="ability-cd" id="cd-ability-3" style="display:none;"></div></button>
+  <button class="ability-btn" id="ability-4" onclick="useAbility('spy')" title="Casusluk: Düşman gücünü gör">👁<div class="ability-cd" id="cd-ability-4" style="display:none;"></div></button>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notif-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONFIGURATION
+// ═══════════════════════════════════════════════════════════
+const CONFIG = {
+  COLS: 30, ROWS: 20, NUM_STATES: 200,
+  AI_INTERVAL: 2000, INCOME_TICK: 4000,
+  ABILITY_CD: 60000,
+  CD: { attack: 6000, infantry: 8000, archer: 10000, cavalry: 12000, siege: 15000,
+        mine: 10000, barracks: 12000, market: 12000, forge: 18000 }
+};
+
+const UNITS = {
+  infantry: { id:'infantry', name:'Piyade', icon:'🛡️', desc:'Dengeli temel birlik. Güçlü savunma.', attack:1, defense:1.2, power:1, cost:25, max:999, color:'#2980b9' },
+  archer:   { id:'archer',   name:'Okçu',   icon:'🏹', desc:'Uzun menzilli ölümcül atışlar.', attack:2.5, defense:0.3, power:1.8, cost:45, max:500, color:'#27ae60' },
+  cavalry:  { id:'cavalry',  name:'Süvari', icon:'🐎', desc:'Yıldırım hızında yıkıcı saldırı.', attack:4, defense:0.8, power:3.5, cost:80, max:300, color:'#e67e22' },
+  siege:    { id:'siege',    name:'Mancınık',icon:'💥', desc:'Kale düşürücü ağır silah.', attack:8, defense:0.1, power:6, cost:150, max:100, color:'#c0392b' }
+};
+
+const FACTORIES = {
+  mine:     { id:'mine',     name:'Altın Madeni',  icon:'⛏️',  desc:'Zengin damarlar. Gelir +%60.', cost:60,  max:3, effect:'Gelir +60%', type:'economic' },
+  barracks: { id:'barracks', name:'Kışla',         icon:'🏰', desc:'Askeri eğitim. Savunma +%40.', cost:80,  max:2, effect:'Savunma +40%', type:'military' },
+  market:   { id:'market',   name:'Ticaret Pazarı',icon:'⚖️',  desc:'Ticaret ağı. +25 altın/tur.',  cost:100, max:2, effect:'+25 Altın/tur', type:'economic' },
+  forge:    { id:'forge',    name:'Silah Dövme',   icon:'⚒️',  desc:'Usta zanaat. Saldırı +%30.',    cost:200, max:1, effect:'Saldırı +30%', type:'military' }
+};
+
+const STATE_NAMES = [
+  'Kuzey İmparatorluğu','Güney Krallığı','Doğu Cumhuriyeti','Batı Federasyonu',
+  'Demir Taç','Altın Şafak','Kızıl Ordu','Yeşil Yol','Mavi Dalga','Mor Gül',
+  'Siyah Güneş','Beyaz Ay','Çelik Yumruk','Taş Kalp','Ateş Nehri','Buz Kalesi'
+];
+
+const QUESTS = [
+  { id:'first_blood', name:'İlk Kan', desc:'İlk düşman bölgenizi fethedin.', reward:100, type:'conquest', target:1, current:0 },
+  { id:'economist', name:'Ekonomist', desc:'10 fabrika inşa edin.', reward:200, type:'build', target:10, current:0 },
+  { id:'warlord', name:'Savaş Lordu', desc:'50 savaş kazanın.', reward:500, type:'battle', target:50, current:0 },
+  { id:'empire', name:'İmparator', desc:'100 bölge kontrol edin.', reward:1000, type:'conquest', target:100, current:0 },
+  { id:'diplomat', name:'Diplomat', desc:'3 ittifak kurun.', reward:300, type:'diplo', target:3, current:0 }
+];
+
+const PLAYER_ID = 0;
+
+// ═══════════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════════
+let game = {
+  speed: 1, time: 0, running: false, selected: null, lastTick: null,
+  player: {
+    gold: 200, xp: 0, level: 1,
+    units: { infantry:20, archer:0, cavalry:0, siege:0 },
+    cooldowns: {}, abilities: {},
+    stats: { battles:0, wins:0, losses:0, goldEarned:0, unitsRecruited:0, factoriesBuilt:0, questsCompleted:0 },
+    techs: {}, relations: {}
+  },
+  regions: [], states: [],
+  quests: JSON.parse(JSON.stringify(QUESTS)),
+  newLogs: 0, logFilter: 'all'
+};
+
+// ═══════════════════════════════════════════════════════════
+//  INITIALIZATION
+// ═══════════════════════════════════════════════════════════
+function initGame() {
+  const total = CONFIG.COLS * CONFIG.ROWS;
+  
+  game.regions = Array.from({length:total}, (_,i) => ({
+    id:i, owner:-1, army:Math.floor(Math.random()*6)+2,
+    mines:0, barracks:0, markets:0, forges:0,
+    baseIncome:Math.floor(Math.random()*12)+8, defenseBonus:0
+  }));
+  
+  game.states = Array.from({length:CONFIG.NUM_STATES}, (_,i) => ({
+    id:i, name:i===PLAYER_ID?'Sen':generateName(i),
+    hue:(i*360/CONFIG.NUM_STATES+Math.random()*30)%360,
+    gold:i===PLAYER_ID?200:Math.floor(Math.random()*80)+40,
+    army:i===PLAYER_ID?20:Math.floor(Math.random()*15)+5,
+    nextAction:Math.random()*CONFIG.AI_INTERVAL,
+    power:0, relation:i===PLAYER_ID?'player':(Math.random()<0.3?'hostile':'neutral')
+  }));
+  
+  const used = new Set();
+  for(let i=0; i<CONFIG.NUM_STATES; i++) {
+    let pos, attempts=0;
+    do {
+      const base = Math.floor((i/CONFIG.NUM_STATES)*total);
+      pos = Math.max(0, Math.min(total-1, base+Math.floor(Math.random()*10)-5));
+      attempts++;
+    } while(used.has(pos) && attempts<50);
+    if(used.has(pos)) {
+      for(let j=0; j<total; j++) if(!used.has(j)) { pos=j; break; }
+    }
+    used.add(pos);
+    game.regions[pos].owner = i;
+    game.regions[pos].army = game.states[i].army;
+  }
+  
+  const center = Math.floor(CONFIG.ROWS/2)*CONFIG.COLS+Math.floor(CONFIG.COLS/2);
+  game.regions[center].owner = PLAYER_ID;
+  game.regions[center].army = 20;
+  game.selected = center;
+  
+  game.player = {
+    gold:200, xp:0, level:1,
+    units:{infantry:20, archer:0, cavalry:0, siege:0},
+    cooldowns:{}, abilities:{},
+    stats:{battles:0, wins:0, losses:0, goldEarned:0, unitsRecruited:0, factoriesBuilt:0, questsCompleted:0},
+    techs:{}, relations:{}
+  };
+  
+  for(let i=1; i<CONFIG.NUM_STATES; i++) {
+    game.player.relations[i] = Math.random()<0.7 ? 'neutral' : 'hostile';
+  }
+  
+  game.time = 0; game.newLogs = 0;
+}
+
+function generateName(idx) {
+  if(idx < STATE_NAMES.length) return STATE_NAMES[idx];
+  return STATE_NAMES[idx % STATE_NAMES.length] + ' ' + Math.floor(idx/STATE_NAMES.length+1);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CANVAS
+// ═══════════════════════════════════════════════════════════
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+let cellW, cellH;
+
+function resizeCanvas() {
+  const wrap = document.getElementById('map-container');
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  cellW = canvas.width / CONFIG.COLS;
+  cellH = canvas.height / CONFIG.ROWS;
+  if(game.running) drawMap();
+}
+window.addEventListener('resize', resizeCanvas);
+
+function drawMap() {
+  ctx.fillStyle = '#05070a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 0.5;
+  for(let x=0; x<=canvas.width; x+=cellW) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for(let y=0; y<=canvas.height; y+=cellH) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+  
+  game.regions.forEach(reg => drawRegion(reg));
+}
+
+function drawRegion(reg) {
+  const col = reg.id % CONFIG.COLS;
+  const row = Math.floor(reg.id / CONFIG.COLS);
+  const x = col*cellW+1, y = row*cellH+1;
+  const w = cellW-2, h = cellH-2;
+  
+  const state = game.states[reg.owner];
+  const isPlayer = reg.owner === PLAYER_ID;
+  const isSel = game.selected === reg.id;
+  const isNbEnemy = isPlayerNeighbor(reg.id) && reg.owner !== PLAYER_ID && reg.owner >= 0;
+  
+  if(isPlayer) {
+    ctx.fillStyle = '#1a3d5c';
+  } else if(reg.owner < 0) {
+    ctx.fillStyle = '#1a1a1a';
+  } else {
+    ctx.fillStyle = `hsl(${state.hue}, 50%, 25%)`;
+  }
+  ctx.fillRect(x, y, w, h);
+  
+  if(isNbEnemy) {
+    ctx.fillStyle = 'rgba(231, 76, 60, 0.2)';
+    ctx.fillRect(x, y, w, h);
+  }
+  
+  if(isSel) {
+    ctx.save();
+    ctx.shadowColor = '#d4af37';
+    ctx.shadowBlur = 15;
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x-1, y-1, w+2, h+2);
+    ctx.restore();
+  } else {
+    ctx.strokeStyle = isPlayer ? '#4a9ede' : (reg.owner<0 ? '#333' : `hsl(${state.hue}, 70%, 45%)`);
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, w, h);
+  }
+  
+  const facs = reg.mines + reg.barracks + reg.markets + reg.forges;
+  if(facs > 0 && w > 18) {
+    const colors = [];
+    for(let i=0; i<reg.mines; i++) colors.push('#f39c12');
+    for(let i=0; i<reg.barracks; i++) colors.push('#2980b9');
+    for(let i=0; i<reg.markets; i++) colors.push('#27ae60');
+    for(let i=0; i<reg.forges; i++) colors.push('#d4af37');
+    colors.slice(0,4).forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(x+3+i*5, y+3, 4, 4);
+    });
+  }
+  
+  if(w > 22 && h > 18) {
+    const fs = Math.max(8, Math.min(11, Math.floor(w/4)));
+    ctx.font = `bold ${fs}px Cinzel, serif`;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(reg.army.toString(), x+w/2, y+h/2);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INPUT
+// ═══════════════════════════════════════════════════════════
+canvas.addEventListener('click', handleInput);
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  handleInput({ clientX: t.clientX, clientY: t.clientY });
+}, { passive: false });
+
+function handleInput(e) {
+  if(!game.running) return;
+  const rect =
