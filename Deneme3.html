@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>RIVAL REGIONS — ADMIN & SIMULATION</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05070a; --panel: #0c1016; --border: #1f2633;
+    --gold: #d4af37; --red: #c0392b; --green: #27ae60; --text: #c9c0b0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { 
+    background: var(--bg); color: var(--text); font-family: 'Crimson Pro', serif;
+    height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+  }
+
+  /* --- ADMIN PANELİ (ÜST) --- */
+  #admin-header {
+    height: 60px; background: linear-gradient(180deg, #151a24 0%, #0c1016 100%);
+    border-bottom: 2px solid var(--gold); display: flex; align-items: center;
+    padding: 0 15px; justify-content: space-between; z-index: 100;
+  }
+
+  .stat-group { display: flex; gap: 15px; }
+  .stat-box { font-size: 13px; border: 1px solid var(--border); padding: 5px 10px; border-radius: 4px; background: rgba(0,0,0,0.3); }
+  .stat-box span { color: var(--gold); font-weight: bold; }
+
+  /* --- SİMÜLASYON ALANI --- */
+  #simulation-space { flex: 1; position: relative; overflow: hidden; cursor: grab; }
+  canvas { width: 100%; height: 100%; }
+
+  /* --- YAN KONTROL PANELİ --- */
+  #side-panel {
+    position: absolute; right: 10px; top: 70px; width: 220px;
+    background: rgba(12, 16, 22, 0.9); border: 1px solid var(--border);
+    padding: 15px; border-radius: 8px; backdrop-filter: blur(10px);
+    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+  }
+
+  .panel-title { font-family: 'Cinzel'; font-size: 12px; color: var(--gold); margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+  
+  .control-btn {
+    width: 100%; padding: 10px; margin-bottom: 8px; background: #1a202c;
+    border: 1px solid var(--border); color: var(--text); font-size: 11px;
+    font-family: 'Cinzel'; cursor: pointer; transition: 0.2s;
+  }
+  .control-btn:hover { border-color: var(--gold); background: #252d3d; }
+  .control-btn:active { transform: scale(0.98); }
+
+  /* --- LOG SİSTEMİ --- */
+  #war-logs {
+    position: absolute; left: 10px; bottom: 80px; width: 250px; height: 120px;
+    font-size: 11px; overflow-y: auto; background: rgba(0,0,0,0.5);
+    padding: 8px; border-radius: 4px; border-left: 2px solid var(--gold);
+    pointer-events: none;
+  }
+  .log-entry { margin-bottom: 4px; animation: fadeIn 0.3s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* --- ALT NAV --- */
+  #footer { height: 50px; background: var(--panel); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 40px; }
+  .nav-item { font-family: 'Cinzel'; font-size: 10px; color: #5a5648; text-decoration: none; }
+  .nav-item.active { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div id="admin-header">
+  <div style="font-family:'Cinzel'; color:var(--gold); letter-spacing:1px;">ADMIN CONTROL</div>
+  <div class="stat-group">
+    <div class="stat-box">DÜNYA NÜFUSU: <span id="world-pop">0</span></div>
+    <div class="stat-box">HAZİNE: <span id="admin-gold">5,000</span></div>
+    <div class="stat-box">TUR: <span id="turn-count">1</span></div>
+  </div>
+</div>
+
+<div id="simulation-space">
+  <canvas id="simCanvas"></canvas>
+  
+  <div id="side-panel">
+    <div class="panel-title">OPERASYONLAR</div>
+    <button class="control-btn" onclick="spawnArmy()">DESTEK BİRLİĞİ GÖNDER</button>
+    <button class="control-btn" onclick="triggerWar()">SAVAŞI TETİKLE (Y.Z)</button>
+    <button class="control-btn" onclick="boostEconomy()">EKONOMİK TEŞVİK</button>
+    <div class="panel-title" style="margin-top:15px;">DÜNYA HIZI</div>
+    <div style="display:flex; gap:5px;">
+        <button class="control-btn" onclick="setSpeed(1)">1x</button>
+        <button class="control-btn" onclick="setSpeed(2)">2x</button>
+        <button class="control-btn" onclick="setSpeed(5)">5x</button>
+    </div>
+  </div>
+
+  <div id="war-logs"></div>
+</div>
+
+<footer id="footer">
+    <div class="nav-item active">SİMÜLASYON</div>
+    <div class="nav-item">DEVLETLER</div>
+    <div class="nav-item">LOJİSTİK</div>
+</footer>
+
+<script>
+  const canvas = document.getElementById('simCanvas');
+  const ctx = canvas.getContext('2d');
+  let gold = 5000;
+  let turn = 1;
+  let speed = 1;
+  let regions = [];
+  let states = [
+    { name: "Kuzey Birliği", color: "#2980b9", power: 1000, aggro: 0.5 },
+    { name: "Güney İmparatorluğu", color: "#c0392b", power: 950, aggro: 0.7 },
+    { name: "Doğu Hanlığı", color: "#27ae60", color2: "#2ecc71", power: 800, aggro: 0.3 },
+    { name: "Batı Konfederasyonu", color: "#8e44ad", power: 850, aggro: 0.4 }
+  ];
+
+  function init() {
+    resize();
+    createRegions();
+    setInterval(gameLoop, 1000);
+    animate();
+  }
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+
+  function createRegions() {
+    for(let i=0; i<35; i++) {
+      let stateIndex = Math.floor(Math.random() * states.length);
+      regions.push({
+        id: i,
+        x: Math.random() * (canvas.width - 100) + 50,
+        y: Math.random() * (canvas.height - 100) + 50,
+        owner: stateIndex,
+        garrison: Math.floor(Math.random() * 200) + 100,
+        stability: 100, // Gerçekçilik: İstikrar düşükse isyan çıkar
+        production: Math.floor(Math.random() * 50) + 10
+      });
+    }
+  }
+
+  function gameLoop() {
+    if(speed === 0) return;
+    for(let i=0; i<speed; i++) {
+        processAI();
+        turn++;
+    }
+    updateUI();
+  }
+
+  function processAI() {
+    // Yapay Zeka Mantığı: Gerçekçi Kararlar
+    regions.forEach(reg => {
+      let state = states[reg.owner];
+      
+      // 1. Ordu Bakımı (Maliyet)
+      state.power -= reg.garrison * 0.01;
+      
+      // 2. Saldırı Kararı
+      if(Math.random() < state.aggro * 0.05) {
+        let targets = regions.filter(r => r.owner !== reg.owner);
+        let target = targets[Math.floor(Math.random() * targets.length)];
+        
+        // Mesafe Kontrolü (Gerçekçilik: Uzaktaki yere saldırmak zordur)
+        let dist = Math.hypot(reg.x - target.x, reg.y - target.y);
+        if(dist < 300) {
+            resolveBattle(reg, target);
+        }
+      }
+    });
+  }
+
+  function resolveBattle(attacker, defender) {
+    let atkPower = attacker.garrison * (Math.random() + 0.5);
+    let defPower = defender.garrison * (Math.random() + 0.8); // Savunma avantajı
+
+    if(atkPower > defPower) {
+        // Hemen kazanma yok! Savunmayı düşür
+        defender.garrison -= Math.floor(atkPower * 0.2);
+        if(defender.garrison <= 0) {
+            logWar(`${states[attacker.owner].name}, ${states[defender.owner].name} bölgesini ele geçirdi!`);
+            defender.owner = attacker.owner;
+            defender.garrison = Math.floor(atkPower * 0.3);
+            defender.stability = 30; // Yeni fethedilen yer karışıktır
+        }
+    } else {
+        attacker.garrison -= Math.floor(defPower * 0.1);
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Bağlantılar (Etki alanları)
+    regions.forEach(r => {
+        regions.forEach(r2 => {
+            let d = Math.hypot(r.x - r2.x, r.y - r2.y);
+            if(d < 150) {
+                ctx.beginPath();
+                ctx.moveTo(r.x, r.y);
+                ctx.lineTo(r2.x, r2.y);
+                ctx.strokeStyle = "rgba(31, 38, 51, 0.3)";
+                ctx.stroke();
+            }
+        });
+    });
+
+    regions.forEach(r => {
+      // Bölge Çizimi
+      let color = states[r.owner].color;
+      
+      // Işıltı Efekti
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = color;
+      
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, 18, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      
+      // İstikrar Barı
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#555";
+      ctx.fillRect(r.x - 15, r.y + 25, 30, 3);
+      ctx.fillStyle = r.stability > 50 ? "green" : "orange";
+      ctx.fillRect(r.x - 15, r.y + 25, (r.stability/100) * 30, 3);
+
+      // Yazılar
+      ctx.fillStyle = "white";
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(Math.floor(r.garrison), r.x, r.y + 4);
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  // --- Admin Fonksiyonları ---
+  function logWar(msg) {
+    const logEl = document.getElementById('war-logs');
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span style="color:#d4af37">[TUR ${turn}]</span> ${msg}`;
+    logEl.prepend(entry);
+    if(logEl.children.length > 5) logEl.lastChild.remove();
+  }
+
+  function spawnArmy() {
+    gold -= 1000;
+    regions.forEach(r => { if(r.owner === 0) r.garrison += 200; });
+    logWar("Admin tarafından ordu takviyesi yapıldı!");
+  }
+
+  function setSpeed(s) { speed = s; }
+
+  function updateUI() {
+    document.getElementById('world-pop').textContent = regions.reduce((a,b) => a + b.garrison, 0).toLocaleString();
+    document.getElementById('admin-gold').textContent = Math.floor(gold).toLocaleString();
+    document.getElementById('turn-count').textContent = turn;
+  }
+
+  window.onload = init;
+</script>
+
+</body>
+</html>
