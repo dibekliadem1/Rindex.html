@@ -1,0 +1,71 @@
+import time
+import random
+
+class Region:
+    def __init__(self, name, population, oil_reserves, factories, universities, trade_route_status):
+        self.name = name
+        self.population = population
+        self.oil_reserves = oil_reserves
+        self.factories = factories
+        self.universities = universities
+        self.trade_route_status = trade_route_status  # "Açık" veya "Kritik/Kapalı"
+        self.production_index = 0
+        self.year = 2024
+
+    def update_cycle(self):
+        """Her döngüde (yılda) gerçekleşen değişimler"""
+        self.year += 1
+        
+        # 1. Nüfus Artışı: Her yıl %2 standart artış
+        growth_rate = 0.02
+        self.population += int(self.population * growth_rate)
+
+        # 2. Petrol Tüketimi: Nüfus ve fabrika sayısına bağlı tüketim
+        consumption = (self.population * 0.01) + (self.factories * 50)
+        self.oil_reserves -= consumption
+        if self.oil_reserves < 0: self.oil_reserves = 0
+
+        # 3. Üretim Hızı Hesaplama: 
+        # Üniversiteler verimliliği artırır, petrol bitmesi üretimi yavaşlatır.
+        efficiency_boost = self.universities * 0.1
+        if self.oil_reserves > 0:
+            self.production_index = (self.factories * 10) * (1 + efficiency_boost)
+        else:
+            self.production_index = (self.factories * 2) * (1 + efficiency_boost) # Enerjisiz üretim düşüşü
+
+        # 4. Su Yolu Etkisi: Eğer su yolu kritikse üretim %50 düşer
+        if self.trade_route_status == "Kritik":
+            self.production_index *= 0.5
+
+    def display_status(self):
+        """Kontrol Paneli Çıktısı"""
+        print(f"--- BÖLGE: {self.name} | YIL: {self.year} ---")
+        print(f"Nüfus: {self.population:,}")
+        print(f"Petrol Rezervi: {max(0, int(self.oil_reserves))} varil")
+        print(f"Üretim Hızı: {self.production_index:.2f} birim/yıl")
+        print(f"Kurumlar: {self.factories} Fabrika, {self.universities} Üniversite")
+        print(f"Su Yolu Durumu: {self.trade_route_status}")
+        print("-" * 40)
+
+def run_simulation():
+    # Başlangıç Bölgelerini Tanımlıyoruz
+    regions = [
+        Region("Kuzey Bölgesi", population=500000, oil_reserves=1000000, factories=10, universities=2, trade_route_status="Açık"),
+        Region("Güney Havzası", population=800000, oil_reserves=200000, factories=25, universities=5, trade_route_status="Kritik")
+    ]
+
+    print("=== DÜNYA SİMÜLASYONU KONTROL PANELİ BAŞLATILDI ===\n")
+
+    try:
+        while True:
+            for region in regions:
+                region.update_cycle()
+                region.display_status()
+            
+            print("\n...Bir sonraki yıl hesaplanıyor...\n")
+            time.sleep(3) # İzleyici için bekleme süresi
+    except KeyboardInterrupt:
+        print("\nSimülasyon durduruldu.")
+
+if __name__ == "__main__":
+    run_simulation()
