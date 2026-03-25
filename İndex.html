@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Rival Regions: Mobile Conquest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05070a;
+            --panel: #0c0f14;
+            --gold: #c9a84c;
+            --gold-glow: rgba(201, 168, 76, 0.3);
+            --red: #c0392b;
+            --green: #27ae60;
+            --text: #c8bfa8;
+            --border: #1a2030;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Crimson Pro', serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Mobil Header */
+        #header {
+            height: 60px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .res-box { display: flex; align-items: center; gap: 5px; font-weight: 600; color: var(--gold); }
+        .logo { font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 1px; }
+
+        /* Oyun Alanı */
+        #game-map {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #0d1117 0%, #05070a 100%);
+            overflow: hidden;
+        }
+
+        canvas { width: 100%; height: 100%; touch-action: none; }
+
+        /* Alt Panel (Kontroller) */
+        #bottom-ui {
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            padding: 10px 15px env(safe-area-inset-bottom);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #11141c;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 5px;
+            border-radius: 4px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .btn:active { background: var(--gold); color: var(--bg); transform: scale(0.95); }
+
+        /* Bilgi Paneli */
+        #info-overlay {
+            position: absolute;
+            top: 70px;
+            left: 10px;
+            right: 10px;
+            background: rgba(12, 15, 20, 0.9);
+            border: 1px solid var(--gold);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Başlangıç Ekranı */
+        #intro {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .start-btn {
+            margin-top: 30px;
+            padding: 15px 50px;
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="intro">
+    <h1 style="font-family: 'Cinzel'; color: var(--gold); font-size: 2.5rem; margin-bottom: 10px;">RIVAL REGIONS</h1>
+    <p style="color: #5a5648;">Dünyayı fethetmeye hazır mısın?</p>
+    <button class="start-btn" onclick="initGame()">SAVAŞA KATIL</button>
+</div>
+
+<header id="header">
+    <div class="logo">RIVAL REGIONS</div>
+    <div class="res-box">
+        <span id="gold-display">1,000</span> <span>💰</span>
+    </div>
+</header>
+
+<main id="game-map">
+    <canvas id="mCanvas"></canvas>
+    <div id="info-overlay">
+        <b id="region-name">Bölge Adı</b><br>
+        <span id="region-stat">Güç: 100 | Gelir: 50</span>
+        <button class="btn" style="width:100%; margin-top:10px;" id="attack-btn">SALDIR (500 💰)</button>
+    </div>
+</main>
+
+<footer id="bottom-ui">
+    <div class="btn" onclick="upgrade('army')">ORDU GELİŞTİR</div>
+    <div class="btn" onclick="upgrade('eco')">EKONOMİ BAS</div>
+    <div class="btn" onclick="showNews()">HABERLER</div>
+</footer>
+
+<script>
+    const canvas = document.getElementById('mCanvas');
+    const ctx = canvas.getContext('2d');
+    let gold = 1000;
+    let armyLevel = 1;
+    let regions = [];
+    let selectedRegion = null;
+
+    function initGame() {
+        document.getElementById('intro').style.display = 'none';
+        resize();
+        generateMap();
+        animate();
+    }
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+
+    function generateMap() {
+        for(let i=0; i<30; i++) {
+            regions.push({
+                id: i,
+                x: Math.random() * (canvas.width - 60) + 30,
+                y: Math.random() * (canvas.height - 60) + 30,
+                owner: i === 0 ? 'player' : 'enemy',
+                power: Math.floor(Math.random() * 500) + 100,
+                income: Math.floor(Math.random() * 20) + 5,
+                size: 20 + Math.random() * 10
+            });
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Bağlantı Çizgileri
+        ctx.strokeStyle = '#1a2030';
+        ctx.lineWidth = 1;
+        for(let i=0; i<regions.length; i++) {
+            if(i > 0) {
+                ctx.beginPath();
+                ctx.moveTo(regions[i-1].x, regions[i-1].y);
+                ctx.lineTo(regions[i].x, regions[i].y);
+                ctx.stroke();
+            }
+        }
+
+        // Bölgeleri Çiz
+        regions.forEach(r => {
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, r.size, 0, Math.PI * 2);
+            ctx.fillStyle = r.owner === 'player' ? '#27ae60' : '#c0392b';
+            ctx.fill();
+            
+            if(selectedRegion === r) {
+                ctx.strokeStyle = '#c9a84c';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+            
+            // Parlama efekti
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = r.owner === 'player' ? '#2ecc71' : '#e74c3c';
+        });
+
+        gold += (regions.filter(r => r.owner === 'player').length * 0.1);
+        document.getElementById('gold-display').textContent = Math.floor(gold).toLocaleString();
+        
+        requestAnimationFrame(animate);
+    }
+
+    // Dokunmatik/Tıklama Kontrolü
+    canvas.addEventListener('touchstart', handleInput);
+    canvas.addEventListener('mousedown', handleInput);
+
+    function handleInput(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        let found = false;
+        regions.forEach(r => {
+            const d = Math.hypot(r.x - x, r.y - y);
+            if(d < r.size) {
+                selectedRegion = r;
+                showRegionInfo(r);
+                found = true;
+            }
+        });
+        if(!found) document.getElementById('info-overlay').style.display = 'none';
+    }
+
+    function showRegionInfo(r) {
+        const overlay = document.getElementById('info-overlay');
+        overlay.style.display = 'block';
+        document.getElementById('region-name').textContent = r.owner === 'player' ? "Sizin Bölgeniz" : "Düşman Bölgesi";
+        document.getElementById('region-stat').textContent = `Savunma: ${r.power} | Vergi: ${r.income} 💰`;
+        
+        const btn = document.getElementById('attack-btn');
+        if(r.owner === 'player') {
+            btn.style.display = 'none';
+        } else {
+            btn.style.display = 'block';
+            btn.onclick = () => attack(r);
+        }
+    }
+
+    function attack(r) {
+        const cost = 500;
+        if(gold >= cost) {
+            gold -= cost;
+            const playerPower = armyLevel * 200;
+            if(playerPower > r.power) {
+                r.owner = 'player';
+                alert("ZAFER! Bölge ele geçirildi.");
+            } else {
+                alert("YENİLGİ! Ordun geri çekildi.");
+            }
+            document.getElementById('info-overlay').style.display = 'none';
+        } else {
+            alert("Yetersiz altın!");
+        }
+    }
+
+    function upgrade(type) {
+        if(gold >= 1000) {
+            gold -= 1000;
+            if(type === 'army') {
+                armyLevel++;
+                alert("Ordu seviyesi yükseltildi: " + armyLevel);
+            } else {
+                alert("Ekonomi geliştirildi! Pasif gelir arttı.");
+            }
+        } else {
+            alert("Geliştirme için 1,000 💰 gerekiyor!");
+        }
+    }
+
+    function showNews() {
+        alert("HABERLER:\n- Sınırda gerginlik artıyor!\n- Altın madenlerinde verim arttı.");
+    }
+
+    window.addEventListener('resize', resize);
+</script>
+
+</body>
+</html>
