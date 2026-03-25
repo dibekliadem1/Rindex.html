@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WORLD SOVEREIGN SIMULATOR — ADMIN</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #020408; --panel: #0a0c12; --gold: #c5a059; --red: #ff3e3e; --blue: #3e94ff; --border: #1e2530;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; }
+    body { background: var(--bg); color: #8e9aaf; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* --- ÜST VERİ ŞERİDİ --- */
+    #top-bar {
+        height: 35px; background: #000; border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; padding: 0 15px; font-size: 10px; gap: 20px;
+    }
+    .status-led { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; box-shadow: 0 0 8px #2ecc71; }
+
+    /* --- ANA EKRAN --- */
+    #main { flex: 1; position: relative; display: flex; }
+    #canvas-container { flex: 1; position: relative; background: #05070a; overflow: hidden; }
+    canvas { width: 100%; height: 100%; }
+
+    /* --- ADMİN KONTROL MERKEZİ --- */
+    #admin-console {
+        width: 320px; background: var(--panel); border-left: 1px solid var(--border);
+        display: flex; flex-direction: column; padding: 15px; z-index: 100;
+    }
+    .section-title { font-family: 'Cinzel'; color: var(--gold); font-size: 12px; margin: 15px 0 10px; border-bottom: 1px solid var(--border); }
+    
+    .btn {
+        width: 100%; padding: 8px; background: #161b22; border: 1px solid var(--border);
+        color: #c9d1d9; font-size: 10px; margin-bottom: 5px; cursor: pointer; text-align: left;
+    }
+    .btn:hover { border-color: var(--gold); background: #1c2128; }
+    .btn-red:hover { border-color: var(--red); color: var(--red); }
+
+    /* --- CANLI İSTİHBARAT AKIŞI --- */
+    #intel-feed {
+        height: 180px; background: rgba(0,0,0,0.3); border: 1px solid #161b22;
+        font-size: 9px; padding: 10px; overflow-y: auto; margin-top: auto;
+    }
+    .intel-item { margin-bottom: 4px; border-left: 2px solid #333; padding-left: 5px; animation: slideIn 0.3s; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } }
+
+    /* --- BÖLGE DETAYI --- */
+    #hover-intel {
+        position: absolute; display: none; background: rgba(0,0,0,0.9); border: 1px solid var(--gold);
+        padding: 10px; font-size: 11px; pointer-events: none; min-width: 200px; box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+</style>
+</head>
+<body>
+
+<div id="top-bar">
+    <div class="status-led"></div>
+    <div>SİSTEM DURUMU: NOMİNAL</div>
+    <div>DÜNYA NÜFUSU: <span id="total-pop">0</span></div>
+    <div>SAVAŞ AKTİVİTESİ: <span id="war-index" style="color:var(--red)">DÜŞÜK</span></div>
+    <div style="margin-left:auto; font-family:'Cinzel'; color:var(--gold)">MASTER ADMIN INTERFACE</div>
+</div>
+
+<div id="main">
+    <div id="canvas-container">
+        <canvas id="worldMap"></canvas>
+        <div id="hover-intel"></div>
+    </div>
+
+    <div id="admin-console">
+        <div class="section-title">GLOBAL MÜDAHALE</div>
+        <button class="btn btn-red" onclick="triggerCrisis('pandemic')">☣️ PANDEMİ İLAN ET</button>
+        <button class="btn btn-red" onclick="triggerCrisis('crash')">📉 EKONOMİK ÇÖKÜŞ TETİKLE</button>
+        <button class="btn" onclick="triggerCrisis('peace')">🕊️ ZORUNLU BARIŞ (GLOBAL)</button>
+        
+        <div class="section-title">DÜNYA HIZI</div>
+        <div style="display:flex; gap:5px">
+            <button class="btn" style="text-align:center" onclick="setSpeed(1)">1x</button>
+            <button class="btn" style="text-align:center" onclick="setSpeed(5)">5x</button>
+            <button class="btn" style="text-align:center" onclick="setSpeed(20)">HIZLI</button>
+        </div>
+
+        <div class="section-title">DEVLETLERARASI DENGE</div>
+        <div id="state-stats" style="font-size:10px"></div>
+
+        <div class="section-title">CANLI İSTİHBARAT</div>
+        <div id="intel-feed"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('worldMap');
+    const ctx = canvas.getContext('2d');
+    let regions = [];
+    let turn = 0;
+    let speed = 1;
+    
+    const states = [
+        { id: 0, name: "BATI BLOKU", color: "#3498db", ideology: "Demokrasi", aggro: 0.2 },
+        { id: 1, name: "DOĞU KOALİSYONU", color: "#e74c3c", ideology: "Otokrasi", aggro: 0.5 },
+        { id: 2, name: "GÜNEY KONFEDERASYONU", color: "#f1c40f", ideology: "Cumhuriyet", aggro: 0.3 },
+        { id: 3, name: "KUZEY KONSEYİ", color: "#2ecc71", ideology: "Teknokrasi", aggro: 0.1 }
+    ];
+
+    function init() {
+        resize();
+        // Gerçek dünya bölgelerini andıran dağılım
+        for(let i=0; i<60; i++) {
+            regions.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                owner: Math.floor(Math.random() * states.length),
+                population: Math.floor(Math.random() * 5000000) + 1000000,
+                army: Math.floor(Math.random() * 200000) + 50000,
+                gdp: Math.floor(Math.random() * 100),
+                stability: 100,
+                isWarZone: false
+            });
+        }
+        setInterval(simulate, 1000);
+        render();
+    }
+
+    function resize() {
+        canvas.width = document.getElementById('canvas-container').clientWidth;
+        canvas.height = document.getElementById('canvas-container').clientHeight;
+    }
+
+    function simulate() {
+        for(let s=0; s<speed; s++) {
+            turn++;
+            regions.forEach(reg => {
+                const state = states[reg.owner];
+                
+                // 1. Ekonomi ve Nüfus Artışı
+                reg.population += reg.population * 0.0001;
+                reg.army += (reg.population * 0.00005) * (reg.gdp / 100);
+
+                // 2. Jeopolitik Kararlar (AI)
+                if(Math.random() < state.aggro * 0.01) {
+                    let targets = regions.filter(r => r.owner !== reg.owner && Math.hypot(r.x-reg.x, r.y-reg.y) < 200);
+                    if(targets.length > 0) {
+                        attack(reg, targets[Math.floor(Math.random()*targets.length)]);
+                    }
+                }
+
+                // 3. İstikrar Kontrolü
+                if(reg.stability < 40 && Math.random() < 0.05) {
+                    reg.owner = Math.floor(Math.random() * states.length);
+                    reg.stability = 100;
+                    pushIntel(`DEVRİM: Bir bölgede yönetim el değiştirdi!`, reg.owner);
+                }
+            });
+        }
+        updateUI();
+    }
+
+    function attack(attacker, defender) {
+        attacker.isWarZone = true;
+        defender.isWarZone = true;
+        
+        let atkPower = attacker.army * (Math.random() + 0.5);
+        let defPower = defender.army * (Math.random() + 0.8); // Defans avantajı
+
+        if(atkPower > defPower) {
+            let losses = Math.floor(defPower * 0.4);
+            defender.army -= losses;
+            attacker.army -= Math.floor(losses * 0.8);
+            
+            if(defender.army <= 0) {
+                pushIntel(`${states[attacker.owner].name}, stratejik bölgeyi ele geçirdi.`, attacker.owner);
+                defender.owner = attacker.owner;
+                defender.army = Math.floor(atkPower * 0.3);
+                defender.stability = 30;
+                defender.population *= 0.9; // Savaş zayiatı
+            }
+        } else {
+            attacker.army *= 0.7; // Başarısız saldırı ağır kayıp
+        }
+        
+        setTimeout(() => { attacker.isWarZone = false; defender.isWarZone = false; }, 1000);
+    }
+
+    function render() {
+        ctx.fillStyle = "#05070a";
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+
+        // Arka Plan Izgarası
+        ctx.strokeStyle = "#0d1117";
+        ctx.lineWidth = 1;
+        for(let i=0; i<canvas.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+        for(let i=0; i<canvas.height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); ctx.stroke(); }
+
+        // Bölgeler arası sınırlar
+        regions.forEach(r => {
+            regions.forEach(r2 => {
+                let d = Math.hypot(r.x - r2.x, r.y - r2.y);
+                if(d < 150 && r.owner === r2.owner) {
+                    ctx.beginPath();
+                    ctx.moveTo(r.x, r.y);
+                    ctx.lineTo(r2.x, r2.y);
+                    ctx.strokeStyle = states[r.owner].color + "11";
+                    ctx.stroke();
+                }
+            });
+        });
+
+        // Şehirler / Bölgeler
+        regions.forEach(r => {
+            let color = states[r.owner].color;
+            
+            if(r.isWarZone) {
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, 25 + Math.random()*10, 0, Math.PI*2);
+                ctx.fillStyle = "rgba(255, 62, 62, 0.2)";
+                ctx.fill();
+            }
+
+            // Gölge Efekti
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = color;
+            
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, 5, 0, Math.PI*2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "rgba(255,255,255,0.7)";
+            ctx.font = "8px JetBrains Mono";
+            ctx.fillText((r.army/1000).toFixed(1) + "K", r.x + 8, r.y + 3);
+        });
+
+        requestAnimationFrame(render);
+    }
+
+    // --- Admin API ---
+    function triggerCrisis(type) {
+        if(type === 'pandemic') {
+            regions.forEach(r => r.population *= 0.8);
+            pushIntel("KÜRESEL SALGIN: Nüfus %20 azaldı!", 1);
+        }
+        if(type === 'crash') {
+            regions.forEach(r => { r.gdp *= 0.5; r.stability *= 0.6; });
+            pushIntel("BORSA ÇÖKTÜ: Global kaos hakim.", 1);
+        }
+        if(type === 'peace') {
+            states.forEach(s => s.aggro = 0);
+            pushIntel("BÜYÜK BARIŞ İLAN EDİLDİ.", 0);
+        }
+    }
+
+    function pushIntel(msg, stateId) {
+        const feed = document.getElementById('intel-feed');
+        const item = document.createElement('div');
+        item.className = 'intel-item';
+        item.style.borderColor = states[stateId].color;
+        item.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        feed.prepend(item);
+        if(feed.children.length > 20) feed.lastChild.remove();
+    }
+
+    function setSpeed(s) { speed = s; }
+
+    function updateUI() {
+        document.getElementById('total-pop').innerText = regions.reduce((a,b)=>a+b.population,0).toLocaleString();
+        
+        let statsHtml = states.map(s => {
+            let regs = regions.filter(r => r.owner === s.id);
+            let totalArmy = regs.reduce((a,b)=>a+b.army,0);
+            return `<div style="margin-bottom:8px">
+                <div style="display:flex; justify-content:space-between">
+                    <span style="color:${s.color}">${s.name}</span>
+                    <span>${regs.length} Bölge</span>
+                </div>
+                <div style="height:3px; background:#161b22; margin-top:2px">
+                    <div style="width:${(regs.length/regions.length)*100}%; background:${s.color}; height:100%"></div>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('state-stats').innerHTML = statsHtml;
+    }
+
+    window.onload = init;
+    window.onresize = resize;
+
+    // Mouse Etkileşimi
+    canvas.addEventListener('mousemove', (e) => {
+        let rect = canvas.getBoundingClientRect();
+        let mx = e.clientX - rect.left;
+        let my = e.clientY - rect.top;
+        let hover = regions.find(r => Math.hypot(r.x-mx, r.y-my) < 15);
+        
+        const card = document.getElementById('hover-intel');
+        if(hover) {
+            card.style.display = 'block';
+            card.style.left = e.clientX + 15 + "px";
+            card.style.top = e.clientY + 15 + "px";
+            card.innerHTML = `
+                <b style="color:${states[hover.owner].color}">${states[hover.owner].name}</b><br>
+                NÜFUS: ${hover.population.toLocaleString()}<br>
+                ORDU: ${hover.army.toLocaleString()}<br>
+                GELİR: $${(hover.gdp * 1.2).toFixed(1)}B<br>
+                İSTİKRAR: %${Math.floor(hover.stability)}
+            `;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>
