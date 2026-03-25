@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RIVAL REGIONS — SOVEREIGN SIMULATOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #030508; --panel: #0a0e14; --gold: #d4af37; --red: #ff4757; --blue: #2f3542; --text: #a4b0be;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Mono', monospace; }
+  body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* --- ÜST PANEL (DÜNYA DURUMU) --- */
+  #world-status {
+    height: 40px; background: #000; border-bottom: 1px solid #1e272e;
+    display: flex; align-items: center; padding: 0 20px; font-size: 11px; gap: 20px;
+  }
+  .pulse { width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #2ecc71; }
+
+  /* --- ANA SİMÜLASYON --- */
+  #viewport { flex: 1; position: relative; background: radial-gradient(circle, #0f172a 0%, #020617 100%); }
+  canvas { width: 100%; height: 100%; cursor: crosshair; }
+
+  /* --- ADMİN TERMİNALİ --- */
+  #terminal {
+    position: absolute; right: 10px; top: 50px; width: 280px;
+    background: rgba(5, 10, 20, 0.9); border: 1px solid #2f3542;
+    padding: 15px; border-radius: 4px; backdrop-filter: blur(10px);
+  }
+  .t-header { font-family: 'Cinzel'; color: var(--gold); border-bottom: 1px solid #2f3542; margin-bottom: 10px; padding-bottom: 5px; font-size: 14px; }
+  
+  .cmd-btn {
+    width: 100%; background: #1e272e; border: 1px solid #3d4d5d; color: #ced4da;
+    padding: 8px; font-size: 10px; margin-bottom: 5px; cursor: pointer; text-align: left;
+    transition: 0.2s;
+  }
+  .cmd-btn:hover { background: var(--gold); color: #000; }
+
+  /* --- CANLI AKIŞ (LOGS) --- */
+  #live-feed {
+    position: absolute; left: 10px; bottom: 10px; width: 300px; height: 150px;
+    background: rgba(0,0,0,0.4); font-size: 10px; overflow: hidden; padding: 10px;
+    border-left: 2px solid var(--gold); pointer-events: none;
+  }
+  .feed-item { margin-bottom: 5px; border-bottom: 1px shadow #111; opacity: 0.9; }
+
+  /* --- BÖLGE BİLGİ KARTI --- */
+  #info-card {
+    position: absolute; display: none; background: #000; border: 1px solid var(--gold);
+    padding: 10px; pointer-events: none; z-index: 1000; min-width: 150px;
+  }
+</style>
+</head>
+<body>
+
+<div id="world-status">
+    <div><span class="pulse"></span> SİSTEM AKTİF</div>
+    <div>TUR: <span id="turn-val">0</span></div>
+    <div>CANLI NÜFUS: <span id="pop-val">0</span></div>
+    <div style="margin-left:auto; color:var(--gold)">SOVEREIGN ADMIN MODE</div>
+</div>
+
+<div id="viewport">
+    <canvas id="mapCanvas"></canvas>
+    
+    <div id="terminal">
+        <div class="t-header">ADMİN KONTROLLERİ</div>
+        <button class="cmd-btn" onclick="worldEvent('plague')">☣️ VEBA SALGINI BAŞLAT</button>
+        <button class="cmd-btn" onclick="worldEvent('gold_rush')">💰 ALTIN REZERVİ EKLE</button>
+        <button class="cmd-btn" onclick="worldEvent('civil_war')">🔥 İÇ SAVAŞ TETİKLE</button>
+        <button class="cmd-btn" onclick="changeSpeed()">⏩ ZAMAN HIZI: <span id="speed-val">1x</span></button>
+        
+        <div class="t-header" style="margin-top:15px">DEVLET DURUMLARI</div>
+        <div id="state-list" style="font-size:9px"></div>
+    </div>
+
+    <div id="live-feed" id="feed-box"></div>
+    <div id="info-card"></div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    let regions = [];
+    let turn = 0;
+    let timeSpeed = 1;
+    let states = [
+        { id:0, name:"İmparatorluk", color:"#e74c3c", power:1, ideology:"Otokrasi", gold:500 },
+        { id:1, name:"Federasyon", color:"#3498db", power:1, ideology:"Demokrasi", gold:500 },
+        { id:2, name:"Klanlar", color:"#2ecc71", power:1, ideology:"Kabile", gold:500 },
+        { id:3, name:"Ticaret Konseyi", color:"#f1c40f", power:1, ideology:"Plütokrasi", gold:500 }
+    ];
+
+    function init() {
+        resize();
+        // 50 adet stratejik bölge oluştur
+        for(let i=0; i<50; i++) {
+            regions.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                owner: Math.floor(Math.random() * states.length),
+                army: Math.floor(Math.random() * 500) + 100,
+                stability: 100,
+                fort: Math.floor(Math.random() * 3),
+                supply: 100
+            });
+        }
+        setInterval(update, 1000);
+        render();
+    }
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight - 40;
+    }
+
+    function update() {
+        if(timeSpeed === 0) return;
+        for(let s=0; s<timeSpeed; s++) {
+            turn++;
+            simulateAI();
+        }
+        updateUI();
+    }
+
+    function simulateAI() {
+        regions.forEach(reg => {
+            // Lojistik Kontrolü: Eğer bölge çok yalnızsa ikmal düşer
+            let neighbors = regions.filter(r => Math.hypot(r.x-reg.x, r.y-reg.y) < 150);
+            let friendlies = neighbors.filter(r => r.owner === reg.owner).length;
+            reg.supply = Math.min(100, friendlies * 30);
+
+            // Ordu Büyümesi
+            reg.army += Math.random() * 5 * (reg.supply / 100);
+
+            // Saldırı Mantığı
+            if(Math.random() < 0.02) {
+                let enemies = neighbors.filter(r => r.owner !== reg.owner);
+                if(enemies.length > 0) {
+                    let target = enemies[Math.floor(Math.random() * enemies.length)];
+                    battle(reg, target);
+                }
+            }
+        });
+    }
+
+    function battle(a, d) {
+        let aP = a.army * (a.supply/100) * (Math.random() + 0.5);
+        let dP = d.army * (1 + d.fort * 0.5) * (Math.random() + 0.7);
+
+        if(aP > dP) {
+            d.army -= Math.floor(aP * 0.3);
+            if(d.army < 0) {
+                pushFeed(`${states[a.owner].name} bir bölgeyi fethetti!`, a.owner);
+                d.owner = a.owner;
+                d.army = Math.floor(aP * 0.2);
+                d.stability = 40;
+            }
+        } else {
+            a.army -= Math.floor(dP * 0.2);
+        }
+    }
+
+    function render() {
+        ctx.fillStyle = "#030508";
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+
+        // Bağlantı Hatları (Ticaret/İkmal Yolları)
+        ctx.lineWidth = 0.5;
+        regions.forEach(r1 => {
+            regions.forEach(r2 => {
+                let d = Math.hypot(r1.x-r2.x, r1.y-r2.y);
+                if(d < 120) {
+                    ctx.beginPath();
+                    ctx.moveTo(r1.x, r1.y);
+                    ctx.lineTo(r2.x, r2.y);
+                    ctx.strokeStyle = r1.owner === r2.owner ? "rgba(212,175,55,0.1)" : "rgba(255,255,255,0.03)";
+                    ctx.stroke();
+                }
+            });
+        });
+
+        // Bölgeler
+        regions.forEach(r => {
+            let color = states[r.owner].color;
+            
+            // Bölge Işıltısı
+            let grad = ctx.createRadialGradient(r.x, r.y, 0, r.x, r.y, 30);
+            grad.addColorStop(0, color + "44");
+            grad.addColorStop(1, "transparent");
+            ctx.fillStyle = grad;
+            ctx.fillRect(r.x-30, r.y-30, 60, 60);
+
+            // Çekirdek
+            ctx.beginPath();
+            ctx.arc(r.x, r.y, 6, 0, Math.PI*2);
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Bilgi (Sayılar)
+            ctx.fillStyle = "#fff";
+            ctx.font = "9px Space Mono";
+            ctx.textAlign = "center";
+            ctx.fillText(Math.floor(r.army), r.x, r.y - 12);
+        });
+
+        requestAnimationFrame(render);
+    }
+
+    // --- Admin Fonksiyonları ---
+    function worldEvent(type) {
+        if(type === 'plague') {
+            regions.forEach(r => { if(Math.random() < 0.3) r.army *= 0.5; });
+            pushFeed("KÜRESEL VEBA SALGINI: Nüfus kırılıyor!", 0);
+        }
+        if(type === 'gold_rush') {
+            states.forEach(s => s.gold += 1000);
+            pushFeed("ALTIN BULUNDU: Tüm devletler zenginleşiyor.", 3);
+        }
+    }
+
+    function pushFeed(msg, stateId) {
+        const feed = document.getElementById('live-feed');
+        const item = document.createElement('div');
+        item.className = 'feed-item';
+        item.style.color = states[stateId].color;
+        item.innerHTML = `> [T-${turn}] ${msg}`;
+        feed.prepend(item);
+        if(feed.children.length > 6) feed.lastChild.remove();
+    }
+
+    function changeSpeed() {
+        timeSpeed = timeSpeed === 5 ? 0 : (timeSpeed === 0 ? 1 : timeSpeed + 2);
+        document.getElementById('speed-val').innerText = timeSpeed + "x";
+    }
+
+    function updateUI() {
+        document.getElementById('turn-val').innerText = turn;
+        document.getElementById('pop-val').innerText = regions.reduce((a,b)=> a+b.army,0).toLocaleString();
+        
+        let list = document.getElementById('state-list');
+        list.innerHTML = states.map(s => {
+            let count = regions.filter(r => r.owner === s.id).length;
+            return `<div style="margin-bottom:5px">
+                <span style="color:${s.color}">■</span> ${s.name}: ${count} Bölge (${s.ideology})
+            </div>`;
+        }).join('');
+    }
+
+    window.onload = init;
+    window.onresize = resize;
+
+    // İnteraktiflik: Fare ile bölge kontrolü
+    canvas.onmousemove = (e) => {
+        let hover = regions.find(r => Math.hypot(r.x - e.clientX, r.y - (e.clientY-40)) < 15);
+        const card = document.getElementById('info-card');
+        if(hover) {
+            card.style.display = 'block';
+            card.style.left = e.clientX + 15 + "px";
+            card.style.top = e.clientY + "px";
+            card.innerHTML = `SAHİBİ: ${states[hover.owner].name}<br>ORDU: ${Math.floor(hover.army)}<br>İKMAL: %${hover.supply}`;
+        } else {
+            card.style.display = 'none';
+        }
+    };
+</script>
+</body>
+</html>
