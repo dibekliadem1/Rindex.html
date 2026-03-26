@@ -1,0 +1,255 @@
+import random
+import time
+import sys
+
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.level = 1
+        self.exp = 0
+        self.energy = 100
+        self.max_energy = 100
+        self.gold = 100
+        self.oil = 0
+        self.ore = 0
+        self.weapons = 0
+        self.endurance = 0
+        self.perk_points = 0
+        
+    def level_up(self):
+        if self.exp >= self.level * 100:
+            self.exp -= self.level * 100
+            self.level += 1
+            self.max_energy += 10
+            self.energy = self.max_energy
+            self.perk_points += 1
+            print(f"\n🎉 TEBRİKLER! Seviye {self.level} oldunuz!")
+            print(f"Enerjiniz {self.max_energy} oldu, 1 yetenek puanı kazandınız.")
+            return True
+        return False
+    
+    def use_energy(self, amount):
+        if self.energy >= amount:
+            self.energy -= amount
+            return True
+        print("Yeterli enerjiniz yok!")
+        return False
+    
+    def gain_exp(self, amount):
+        self.exp += amount
+        print(f"+{amount} deneyim kazandınız!")
+        while self.level_up():
+            pass
+    
+    def add_perk(self):
+        if self.perk_points > 0:
+            self.endurance += 1
+            self.perk_points -= 1
+            print(f"Dayanıklılık seviyeniz {self.endurance} oldu!")
+            if self.endurance >= 50:
+                print("Artık işlerde %20 daha az enerji harcıyorsunuz!")
+            if self.endurance >= 100:
+                print("Artık savaşlarda %20 daha az enerji harcıyorsunuz!")
+        else:
+            print("Yetenek puanınız yok!")
+    
+    def work(self, job_type):
+        energy_cost = 10
+        if self.endurance >= 50:
+            energy_cost = 8
+            
+        if not self.use_energy(energy_cost):
+            return
+            
+        if job_type == "gold":
+            earned = random.randint(20, 40)
+            self.gold += earned
+            print(f"Altın madeninde çalıştınız! +{earned} altın kazandınız.")
+            self.gain_exp(10)
+        elif job_type == "oil":
+            earned = random.randint(10, 30)
+            self.oil += earned
+            print(f"Petrol kuyusunda çalıştınız! +{earned} petrol kazandınız.")
+            self.gain_exp(8)
+        elif job_type == "ore":
+            earned = random.randint(15, 35)
+            self.ore += earned
+            print(f"Maden ocağında çalıştınız! +{earned} cevher kazandınız.")
+            self.gain_exp(8)
+    
+    def train(self):
+        energy_cost = 5
+        if self.use_energy(energy_cost):
+            print("Savaş eğitimi yaptınız!")
+            self.gain_exp(5)
+    
+    def buy_weapons(self):
+        cost = 50
+        if self.gold >= cost:
+            self.gold -= cost
+            self.weapons += 10
+            print("10 adet silah satın aldınız!")
+        else:
+            print(f"Yeterli altın yok! {cost} altın gerekli.")
+    
+    def war(self):
+        if self.weapons < 5:
+            print("Savaşmak için en az 5 silahınız olmalı! Pazardan silah alın.")
+            return
+            
+        energy_cost = 10
+        if self.endurance >= 100:
+            energy_cost = 8
+            
+        if not self.use_energy(energy_cost):
+            return
+            
+        self.weapons -= 5
+        damage = random.randint(10, 30) + (self.level * 2) + (self.endurance // 10)
+        print(f"Savaşa katıldınız! {damage} hasar verdiniz.")
+        self.gain_exp(15 + self.level)
+        
+        if random.random() < 0.3:
+            loot = random.randint(10, 50)
+            self.gold += loot
+            print(f"Savaş ganimeti! +{loot} altın buldunuz.")
+    
+    def create_factory(self):
+        if self.gold >= 500:
+            self.gold -= 500
+            print("Kendi fabrikanızı kurdunuz! Artık pasif gelir elde edeceksiniz.")
+            return True
+        else:
+            print("Fabrika kurmak için 500 altın gerekli!")
+            return False
+    
+    def factory_income(self):
+        if hasattr(self, 'has_factory') and self.has_factory:
+            earned = random.randint(5, 20)
+            self.gold += earned
+            print(f"Fabrikanızdan +{earned} altın pasif gelir elde ettiniz.")
+    
+    def show_status(self):
+        print("\n" + "="*40)
+        print(f"👤 Oyuncu: {self.name}")
+        print(f"⭐ Seviye: {self.level} | 📊 Deneyim: {self.exp}/{self.level*100}")
+        print(f"⚡ Enerji: {self.energy}/{self.max_energy}")
+        print(f"💰 Altın: {self.gold} | 🛢️ Petrol: {self.oil} | ⛏️ Cevher: {self.ore}")
+        print(f"🔫 Silah: {self.weapons} | 💪 Dayanıklılık: {self.endurance}")
+        print(f"🔧 Yetenek Puanı: {self.perk_points}")
+        print("="*40)
+
+class Game:
+    def __init__(self):
+        self.player = None
+        self.running = True
+        self.day = 1
+    
+    def clear_screen(self):
+        print("\n" * 2)
+    
+    def show_menu(self):
+        print("\n📋 ANA MENÜ")
+        print("1. ⚔️ Savaşa Katıl")
+        print("2. 🏭 Çalış (Altın Madeni)")
+        print("3. 🛢️ Çalış (Petrol Kuyusu)")
+        print("4. ⛏️ Çalış (Cevher Ocağı)")
+        print("5. 🏋️ Eğitim Yap")
+        print("6. 🔫 Silah Satın Al")
+        print("7. 💪 Yetenek Ekle (Dayanıklılık)")
+        print("8. 🏭 Fabrika Kur (500 Altın)")
+        print("9. 📊 Durum Görüntüle")
+        print("0. 🚪 Çıkış Yap")
+    
+    def process_input(self, choice):
+        if choice == "1":
+            self.player.war()
+        elif choice == "2":
+            self.player.work("gold")
+        elif choice == "3":
+            self.player.work("oil")
+        elif choice == "4":
+            self.player.work("ore")
+        elif choice == "5":
+            self.player.train()
+        elif choice == "6":
+            self.player.buy_weapons()
+        elif choice == "7":
+            self.player.add_perk()
+        elif choice == "8":
+            if self.player.create_factory():
+                self.player.has_factory = True
+        elif choice == "9":
+            self.player.show_status()
+        elif choice == "0":
+            self.running = False
+        else:
+            print("Geçersiz seçenek!")
+        
+        time.sleep(1.5)
+    
+    def daily_event(self):
+        self.day += 1
+        print("\n📅 Yeni Gün Başlıyor!")
+        
+        # Enerji yenileme
+        self.player.energy = min(self.player.max_energy, self.player.energy + 20)
+        
+        # Pasif gelir
+        if hasattr(self.player, 'has_factory') and self.player.has_factory:
+            self.player.factory_income()
+        
+        # Rastgele olay
+        event_roll = random.random()
+        if event_roll < 0.2:
+            bonus = random.randint(10, 30)
+            self.player.gold += bonus
+            print(f"🎁 Rastgele Olay! {bonus} altın buldunuz!")
+        elif event_roll < 0.35:
+            self.player.energy = max(0, self.player.energy - 10)
+            print("⚠️ Bir kaza geçirdiniz! 10 enerji kaybettiniz.")
+    
+    def start(self):
+        self.clear_screen()
+        print("🏛️ RIVAL REGIONS - Jeopolitik Simülatör")
+        print("="*40)
+        name = input("Oyuncu adınızı girin: ").strip()
+        if not name:
+            name = "Komutan"
+        self.player = Player(name)
+        
+        print(f"\nHoş geldiniz, {self.player.name}!")
+        print("Rival Regions dünyasına adım atıyorsunuz.")
+        print("İlk tavsiyemiz: Önce dayanıklılık yeteneğinizi geliştirin (50 puana kadar).")
+        print("Altın madeninde çalışarak para kazanın, silah alarak savaşlara katılın.")
+        print("Her saat başı ücretsiz eğitim yapmayı unutmayın!")
+        print("İyi şanslar!\n")
+        
+        input("Devam etmek için Enter tuşuna basın...")
+        
+        while self.running:
+            self.clear_screen()
+            print(f"🗓️ Gün {self.day}")
+            self.player.show_status()
+            self.show_menu()
+            choice = input("\nSeçiminiz: ")
+            self.process_input(choice)
+            
+            # Her 3 harekette bir gün ilerlet
+            if hasattr(self, '_action_count'):
+                self._action_count += 1
+            else:
+                self._action_count = 1
+            
+            if self._action_count % 3 == 0:
+                self.daily_event()
+            
+            if self.player.energy <= 0:
+                print("\n💤 Enerjiniz tükendi! Dinlenmek için bir gün bekleyin.")
+                self.daily_event()
+        
+        print("\nOyun bitti. Rival Regions'da tekrar görüşmek üzere!")
+
+if __name__ == "__main__":
+    game = Game()
+    game.start()
