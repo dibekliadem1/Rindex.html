@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>RIVAL REGIONS \u2014 \u0130MPARATORLUK SAVA\u015eLARI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#05070a; --panel:#0a0d12; --panel2:#0d1016; --panel3:#11141c;
+  --border:#1a2030; --border2:#252d40;
+  --gold:#d4af37; --gold2:#f0c850; --gold3:#ffe080;
+  --text:#c9c0b0; --text2:#8a8478;
+  --red:#c0392b; --red2:#e74c3c;
+  --green:#27ae60; --green2:#2ecc71;
+  --blue:#2980b9; --blue2:#3498db;
+  --orange:#e67e22; --purple:#8e44ad;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
+body{color:var(--text);font-family:'Crimson Pro',serif;display:flex;flex-direction:column;background:radial-gradient(ellipse at top,#0a1018,#05070a);}
+
+/* \u2550\u2550\u2550 STATUS BAR \u2550\u2550\u2550 */
+#status-bar{
+  height:28px;background:#000;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;font-size:9px;
+  font-family:'JetBrains Mono',monospace;color:var(--text2);gap:16px;
+  flex-shrink:0;
+}
+.status-led{width:7px;height:7px;border-radius:50%;background:#2ecc71;box-shadow:0 0 8px #2ecc71;animation:ledPulse 2s infinite;}
+@keyframes ledPulse{0%,100%{opacity:1}50%{opacity:0.6}}
+#war-activity{color:var(--red2);}
+#world-pop{color:var(--gold);}
+
+/* \u2550\u2550\u2550 HEADER \u2550\u2550\u2550 */
+#hdr{
+  height:54px;background:linear-gradient(180deg,#0d1218,#080a0f);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 10px;gap:8px;
+  flex-shrink:0;z-index:20;box-shadow:0 2px 20px rgba(0,0,0,0.6);
+}
+#logo{font-family:'Cinzel',serif;font-size:14px;font-weight:900;color:var(--gold);letter-spacing:2px;white-space:nowrap;text-shadow:0 0 20px rgba(212,175,55,0.4);}
+#res-bar{display:flex;gap:5px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none;}
+#res-bar::-webkit-scrollbar{display:none;}
+.ri{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:3px 7px;border-radius:3px;font-size:11px;min-width:fit-content;}
+.rv{color:var(--gold2);font-weight:700;font-size:12px;}
+.rl{color:var(--text2);font-size:8px;text-transform:uppercase;letter-spacing:1px;}
+#game-ctrl{display:flex;gap:4px;align-items:center;}
+#timer{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);border:1px solid var(--border);padding:4px 8px;border-radius:2px;background:rgba(212,175,55,0.06);}
+.spd-btn{font-family:'Cinzel',serif;font-size:9px;padding:4px 7px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.2s;border-radius:2px;}
+.spd-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,0.15);}
+
+/* \u2550\u2550\u2550 TABS \u2550\u2550\u2550 */
+#tabs{height:50px;display:flex;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;z-index:15;}
+.tab-btn{flex:1;border:none;background:transparent;color:var(--text2);font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-bottom:2px solid transparent;transition:all 0.3s;position:relative;}
+.tab-btn .ti{font-size:16px;transition:transform 0.2s;}
+.tab-btn:hover .ti{transform:scale(1.1);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);background:linear-gradient(180deg,transparent,rgba(212,175,55,0.08));}
+.tab-badge{position:absolute;top:4px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:7px;padding:1px 4px;border-radius:8px;display:none;animation:pulse 1.5s infinite;}
+.tab-badge.show{display:block;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* \u2550\u2550\u2550 CONTENT \u2550\u2550\u2550 */
+#content{flex:1;overflow:hidden;position:relative;}
+.tab-panel{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+.tab-panel.active{display:flex;}
+
+/* \u2550\u2550\u2550 MAP \u2550\u2550\u2550 */
+#map-wrap{flex:1;position:relative;overflow:hidden;background:radial-gradient(ellipse at center,#0a1018,#05070a);}
+#map-canvas{display:block;cursor:crosshair;touch-action:none;}
+.combat-text{position:absolute;font-family:'Cinzel',serif;font-weight:700;font-size:13px;pointer-events:none;animation:floatUp 1.5s ease-out forwards;text-shadow:0 2px 4px rgba(0,0,0,0.9);}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-45px) scale(0.7)}}
+
+/* \u2550\u2550\u2550 INTEL TICKER \u2550\u2550\u2550 */
+#intel-ticker{height:24px;background:rgba(0,0,0,0.6);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;display:flex;align-items:center;padding:0 10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text2);flex-shrink:0;}
+#ticker-inner{white-space:nowrap;animation:ticker 40s linear infinite;}
+@keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-200%)}}
+
+/* \u2550\u2550\u2550 SEL BAR \u2550\u2550\u2550 */
+#sel-bar{background:var(--panel2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 10px;display:flex;gap:10px;align-items:center;flex-shrink:0;}
+.sel-name{font-family:'Cinzel',serif;font-size:12px;color:var(--gold2);font-weight:700;min-width:90px;}
+.sel-stats{display:flex;gap:12px;flex:1;}
+.sel-stat{display:flex;flex-direction:column;}
+.ssl{font-size:8px;color:var(--text2);text-transform:uppercase;}
+.ssv{font-size:12px;color:var(--text);font-weight:600;}
+.sel-badge{font-size:9px;padding:3px 9px;border-radius:2px;text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif;white-space:nowrap;}
+.sb-own{background:rgba(39,174,96,0.15);color:var(--green2);border:1px solid var(--green);}
+.sb-enemy{background:rgba(192,57,43,0.15);color:var(--red2);border:1px solid var(--red);}
+.sb-neutral{background:rgba(138,132,120,0.1);color:var(--text2);border:1px solid var(--text2);}
+
+/* \u2550\u2550\u2550 ACTION BAR \u2550\u2550\u2550 */
+#action-bar{background:var(--panel);border-top:1px solid var(--border);padding:8px 10px;display:flex;gap:7px;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+.btn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:9px 12px;border:1px solid;background:transparent;cursor:pointer;transition:all 0.2s;border-radius:2px;display:flex;align-items:center;gap:5px;min-height:38px;}
+.btn:disabled{opacity:0.2;cursor:not-allowed;}
+.btn-danger{color:var(--red2);border-color:var(--red);background:linear-gradient(180deg,rgba(192,57,43,0.1),transparent);}
+.btn-danger:not(:disabled):hover{background:rgba(192,57,43,0.25);box-shadow:0 0 15px rgba(192,57,43,0.2);}
+.btn-primary{color:var(--gold);border-color:var(--gold);background:linear-gradient(180deg,rgba(212,175,55,0.1),transparent);}
+.btn-primary:not(:disabled):hover{background:rgba(212,175,55,0.2);}
+.btn-info{color:var(--blue2);border-color:var(--blue);background:linear-gradient(180deg,rgba(41,128,185,0.1),transparent);}
+.btn-info:not(:disabled):hover{background:rgba(41,128,185,0.2);}
+.btn-admin{color:var(--orange);border-color:var(--orange);background:linear-gradient(180deg,rgba(230,126,34,0.1),transparent);}
+.btn-admin:not(:disabled):hover{background:rgba(230,126,34,0.2);}
+#hint-txt{flex:1;font-size:10px;color:var(--text2);font-style:italic;text-align:center;line-height:1.4;}
+.cd-group{display:flex;gap:5px;}
+.cd-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.cd-icon{font-size:11px;}
+.cd-bar{width:28px;height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;}
+.cd-fill{height:100%;border-radius:2px;transition:width 0.1s linear;}
+.cd-atk{background:var(--red);}
+.cd-rec{background:var(--blue);}
+.cd-bld{background:var(--green);}
+
+/* \u2550\u2550\u2550 SHARED SECTION HEADER \u2550\u2550\u2550 */
+.sec-hdr{background:var(--panel2);border-bottom:1px solid var(--border);padding:11px 14px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.sec-title{font-family:'Cinzel',serif;font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;}
+.big-val{font-family:'Cinzel',serif;font-size:22px;color:var(--gold2);font-weight:700;}
+.small-lbl{font-size:8px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+
+/* \u2550\u2550\u2550 ARMY PANEL \u2550\u2550\u2550 */
+#army-scroll{flex:1;overflow-y:auto;}
+.unit-card{background:var(--panel);border-bottom:1px solid var(--border);padding:13px;display:flex;gap:12px;align-items:center;transition:all 0.2s;position:relative;overflow:hidden;}
+.unit-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background 0.2s;}
+.unit-card:hover{background:var(--panel2);}
+.unit-card:hover::before{background:var(--gold);}
+.unit-icon-wrap{width:52px;height:52px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.unit-info{flex:1;}
+.unit-name{font-family:'Cinzel',serif;font-size:12px;margin-bottom:3px;}
+.unit-desc{font-size:10px;color:var(--text2);line-height:1.4;margin-bottom:6px;}
+.unit-stats{display:flex;gap:12px;}
+.unit-stat{font-size:10px;color:var(--text2);}
+.unit-stat span{color:var(--gold2);font-weight:700;}
+.unit-count-val{font-family:'Cinzel',serif;font-size:26px;color:var(--text);min-width:52px;text-align:right;}
+.recruit-btn{margin-top:6px;padding:7px 13px;font-size:9px;font-family:'Cinzel',serif;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--blue);color:var(--blue2);background:transparent;cursor:pointer;transition:all 0.2s;border-radius:2px;display:block;}
+.recruit-btn:hover:not(:disabled){background:rgba(41,128,185,0.2);}
+.recruit-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+/* \u2550\u2550\u2550 FACTORY PANEL \u2550\u2550\u2550 */
+#factory-scroll{flex:1;overflow-y:auto;}
+.factory-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;padding:12px;}
+.factory-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:all 0.3s;}
+.factory-card:hover{border-color:var(--border2);box-shadow:0 8px 25px rgba(0,0,0,0.4);}
+.fac-hdr{padding:13px;display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--border);background:var(--panel2);}
+.fac-icon{width:44px;height:44px;background:var(--panel3);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.fac-title{flex:1;}
+.fac-name{font-family:'Cinzel',serif;font-size:12px;color:var(--text);margin-bottom:2px;}
+.fac-desc{font-size:10px;color:var(--text2);line-height:1.4;}
+.fac-count{text-align:right;}
+.fac-owned{font-family:'Cinzel',serif;font-size:18px;color:var(--gold2);}
+.fac-max{font-size:9px;color:var(--text2);}
+.fac-body{padding:13px;}
+.fac-effect{background:rgba(212,175,55,0.04);border:1px solid var(--border);border-radius:3px;padding:9px;margin-bottom:10px;display:flex;align-items:center;gap:9px;}
+.effect-icon{font-size:14px;}
+.effect-text{font-size:10px;color:var(--text2);}
+.effect-val{color:var(--gold2);font-weight:700;}
+.fac-btn{width:100%;padding:11px;font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:1px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;transition:all 0.2s;border-radius:2px;display:flex;align-items:center;justify-content:center;gap:7px;}
+.fac-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,0.08);}
+.fac-btn:disabled{opacity:0.25;cursor:not-allowed;}
+
+/* \u2550\u2550\u2550 RANKINGS \u2550\u2550\u2550 */
+#rank-scroll{flex:1;overflow-y:auto;}
+.rank-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);transition:all 0.2s;}
+.rank-item:hover{background:var(--panel);}
+.rank-item.player-row{background:linear-gradient(90deg,rgba(212,175,55,0.1),transparent);border-left:3px solid var(--gold);}
+.rank-pos{font-family:'Cinzel',serif;font-size:15px;color:var(--text2);width:28px;text-align:center;}
+.rank-pos.gold{color:var(--gold);}
+.rank-flag{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.rank-info{flex:1;}
+.rank-name{font-family:'Cinzel',serif;font-size:11px;color:var(--text);margin-bottom:2px;}
+.rank-sub{font-size:9px;color:var(--text2);}
+.rank-power-val{font-family:'Cinzel',serif;font-size:13px;color:var(--gold2);text-align:right;}
+
+/* \u2550\u2550\u2550 LOG \u2550\u2550\u2550 */
+#log-scroll{flex:1;overflow-y:auto;padding:12px;font-size:11px;line-height:1.8;}
+.log-entry{padding:7px 10px;margin-bottom:5px;border-radius:3px;border-left:3px solid transparent;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.log-t{font-size:8px;color:var(--text2);margin-right:7px;font-family:'Cinzel',serif;}
+.log-war{background:rgba(192,57,43,0.07);border-left-color:var(--red);}
+.log-win{background:rgba(39,174,96,0.07);border-left-color:var(--green);}
+.log-info{background:rgba(41,128,185,0.07);border-left-color:var(--blue);}
+.log-gold{background:rgba(212,175,55,0.07);border-left-color:var(--gold);}
+.log-crisis{background:rgba(230,126,34,0.07);border-left-color:var(--orange);}
+
+/* \u2550\u2550\u2550 ADMIN PANEL \u2550\u2550\u2550 */
+#admin-scroll{flex:1;overflow-y:auto;padding:14px;}
+.admin-section{margin-bottom:18px;}
+.admin-sec-title{font-family:'Cinzel',serif;font-size:10px;color:var(--orange);letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:10px;}
+.admin-btn{width:100%;padding:10px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);color:var(--text);font-size:10px;font-family:'JetBrains Mono',monospace;margin-bottom:7px;cursor:pointer;text-align:left;transition:all 0.2s;border-radius:3px;}
+.admin-btn:hover{border-color:var(--orange);background:rgba(230,126,34,0.1);color:var(--orange);}
+.admin-btn.danger:hover{border-color:var(--red);background:rgba(192,57,43,0.1);color:var(--red2);}
+.admin-btn.peace:hover{border-color:var(--green);background:rgba(39,174,96,0.1);color:var(--green2);}
+.state-balance{font-size:10px;font-family:'JetBrains Mono',monospace;margin-bottom:5px;}
+.state-bar{height:3px;border-radius:2px;margin-top:3px;}
+
+/* \u2550\u2550\u2550 OVERLAYS \u2550\u2550\u2550 */
+.overlay{position:fixed;inset:0;background:rgba(5,7,10,0.96);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(12px);}
+.overlay.active{display:flex;}
+.modal-wrap{background:var(--panel);border:1px solid var(--border);border-radius:4px;max-width:400px;width:100%;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.6);}
+.modal-hdr{background:var(--panel2);border-bottom:1px solid var(--border);padding:20px;text-align:center;}
+.modal-title{font-family:'Cinzel',serif;font-size:20px;color:var(--gold);margin-bottom:7px;letter-spacing:3px;}
+.modal-sub{font-size:12px;color:var(--text2);line-height:1.6;}
+.modal-body{padding:18px;}
+.feat-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.feat-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--panel2);border-radius:3px;border:1px solid var(--border);}
+.feat-icon{font-size:18px;}
+.feat-text{font-size:11px;color:var(--text);}
+.feat-text strong{color:var(--gold2);display:block;margin-bottom:1px;}
+.modal-btn{width:100%;padding:14px;font-family:'Cinzel',serif;font-size:12px;text-transform:uppercase;letter-spacing:2px;border:1px solid var(--gold);color:var(--gold);background:linear-gradient(180deg,rgba(212,175,55,0.15),transparent);cursor:pointer;transition:all 0.3s;border-radius:2px;}
+.modal-btn:hover{background:rgba(212,175,55,0.25);box-shadow:0 0 30px rgba(212,175,55,0.2);}
+.end-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+.end-stat{text-align:center;padding:13px;background:var(--panel2);border:1px solid var(--border);border-radius:3px;}
+.end-stat-val{font-family:'Cinzel',serif;font-size:26px;color:var(--gold2);margin-bottom:3px;}
+.end-stat-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+
+/* \u2550\u2550\u2550 NOTIFICATIONS \u2550\u2550\u2550 */
+#notif-wrap{position:fixed;top:88px;right:8px;z-index:400;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.notif{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--gold);padding:10px 13px;border-radius:3px;font-size:11px;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,0.5);animation:slideIn 0.3s ease;max-width:220px;}
+.notif.err{border-left-color:var(--red);}
+.notif.ok{border-left-color:var(--green);}
+.notif.info{border-left-color:var(--blue);}
+.notif.crisis{border-left-color:var(--orange);}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* \u2550\u2550\u2550 TOOLTIP \u2550\u2550\u2550 */
+#tooltip{position:fixed;background:var(--panel);border:1px solid var(--border);padding:8px 11px;border-radius:3px;font-size:10px;pointer-events:none;z-index:500;display:none;box-shadow:0 8px 25px rgba(0,0,0,0.5);max-width:180px;}
+.tt-title{font-family:'Cinzel',serif;color:var(--gold);margin-bottom:3px;}
+.tt-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:2px;font-family:'JetBrains Mono',monospace;font-size:9px;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+@media(max-width:480px){
+  .factory-grid{grid-template-columns:1fr;}
+  .sel-stats{gap:7px;}
+  .btn{padding:7px 8px;font-size:8px;}
+  #status-bar{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="overlay active" id="intro">
+  <div class="modal-wrap">
+    <div class="modal-hdr">
+      <div class="modal-title">\u2694 RAK\u0130P B\u00d6LGELER</div>
+      <div class="modal-sub">Ger\u00e7ek d\u00fcnya haritas\u0131nda strateji, sava\u015f ve imparatorluk.</div>
+    </div>
+    <div class="modal-body">
+      <div class="feat-list">
+        <div class="feat-item"><span class="feat-icon">\ud83d\uddfa\ufe0f</span><div class="feat-text"><strong>Ger\u00e7ek D\u00fcnya \u00dclkeleri</strong>12 b\u00fcy\u00fck g\u00fc\u00e7, 300+ b\u00f6lge</div></div>
+        <div class="feat-item"><span class="feat-icon">\u2694\ufe0f</span><div class="feat-text"><strong>4 Birlik Tipi</strong>Piyade, Ok\u00e7u, S\u00fcvari, Manc\u0131n\u0131k</div></div>
+        <div class="feat-item"><span class="feat-icon">\ud83c\udfed</span><div class="feat-text"><strong>4 Fabrika T\u00fcr\u00fc</strong>Maden, K\u0131\u015fla, Pazar, D\u00f6vme</div></div>
+        <div class="feat-item"><span class="feat-icon">\u2623\ufe0f</span><div class="feat-text"><strong>Admin Kriz Paneli</strong>Pandemi, ekonomik \u00e7\u00f6k\u00fc\u015f, sava\u015f ilan\u0131</div></div>
+        <div class="feat-item"><span class="feat-icon">\ud83d\udcca</span><div class="feat-text"><strong>Canl\u0131 \u0130stihbarat</strong>D\u00fcnya n\u00fcfusu, sava\u015f aktivitesi ak\u0131\u015f\u0131</div></div>
+      </div>
+      <button class="modal-btn" onclick="startGame()">\u2694 Sava\u015fa Ba\u015fla</button>
+    </div>
+  </div>
+</div>
+
+<!-- END -->
+<div class="overlay" id="end-overlay">
+  <div class="modal-wrap">
+    <div class="modal-hdr">
+      <div class="modal-title" id="end-title">\ud83c\udfc6 ZAFER!</div>
+      <div class="modal-sub" id="end-desc">Haritaya h\u00fckmettiniz.</div>
+    </div>
+    <div class="modal-body">
+      <div class="end-stats">
+        <div class="end-stat"><div class="end-stat-val" id="end-regions">0</div><div class="end-stat-label">B\u00f6lge</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-battles">0</div><div class="end-stat-label">Sava\u015f</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-gold">0</div><div class="end-stat-label">Kazan\u0131lan Alt\u0131n</div></div>
+        <div class="end-stat"><div class="end-stat-val" id="end-time">0:00</div><div class="end-stat-label">S\u00fcre</div></div>
+      </div>
+      <button class="modal-btn" onclick="location.reload()">Yeniden Oyna</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div id="status-bar">
+  <div class="status-led"></div>
+  <span>S\u0130STEM: NOM\u0130NAL</span>
+  <span>N\u00dcFUS: <span id="world-pop" style="color:var(--gold)">\u2014</span></span>
+  <span>SAVA\u015e: <span id="war-activity" style="color:var(--red2)">D\u00dc\u015e\u00dcK</span></span>
+  <span style="margin-left:auto;font-family:'Cinzel';color:var(--gold)">KOMUTA MERKEZ\u0130</span>
+</div>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div id="logo">\u2694 RIVAL</div>
+  <div id="res-bar">
+    <div class="ri">\ud83d\udcb0<span class="rv" id="r-gold">500</span><span class="rl">Alt\u0131n</span></div>
+    <div class="ri">\u2694\ufe0f<span class="rv" id="r-army">20</span><span class="rl">G\u00fc\u00e7</span></div>
+    <div class="ri">\ud83c\udfed<span class="rv" id="r-fac">0</span><span class="rl">Fabrika</span></div>
+    <div class="ri">\ud83d\uddfa\ufe0f<span class="rv" id="r-reg">3</span><span class="rl">B\u00f6lge</span></div>
+    <div class="ri">\ud83d\udcca<span class="rv" id="r-rank">#?</span></div>
+  </div>
+  <div id="game-ctrl">
+    <button class="spd-btn active" onclick="setSpeed(1)" id="sp1">\u00d71</button>
+    <button class="spd-btn" onclick="setSpeed(3)" id="sp3">\u00d73</button>
+    <button class="spd-btn" onclick="setSpeed(10)" id="sp10">\u00d710</button>
+    <div id="timer">00:00</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div id="tabs">
+  <button class="tab-btn active" onclick="switchTab('map')" id="tab-map"><span class="ti">\ud83d\uddfa\ufe0f</span><span>Harita</span></button>
+  <button class="tab-btn" onclick="switchTab('army')" id="tab-army"><span class="ti">\u2694\ufe0f</span><span>Ordu</span></button>
+  <button class="tab-btn" onclick="switchTab('factory')" id="tab-factory"><span class="ti">\ud83c\udfed</span><span>Fabrika</span><span class="tab-badge" id="badge-fac">!</span></button>
+  <button class="tab-btn" onclick="switchTab('rank')" id="tab-rank"><span class="ti">\ud83c\udfc6</span><span>S\u0131ralama</span></button>
+  <button class="tab-btn" onclick="switchTab('log')" id="tab-log"><span class="ti">\ud83d\udcdc</span><span>Olaylar</span><span class="tab-badge" id="badge-log">0</span></button>
+  <button class="tab-btn" onclick="switchTab('admin')" id="tab-admin"><span class="ti">\u2623\ufe0f</span><span>Admin</span></button>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+
+  <!-- MAP -->
+  <div class="tab-panel active" id="panel-map">
+    <div id="map-wrap"><canvas id="map-canvas"></canvas></div>
+    <div id="intel-ticker"><span id="ticker-inner">D\u00fcnya haritas\u0131 y\u00fckleniyor... \u0130stihbarat ak\u0131\u015f\u0131 ba\u015flat\u0131l\u0131yor...</span></div>
+    <div id="sel-bar">
+      <div class="sel-name" id="sel-name">B\u00f6lge Se\u00e7in</div>
+      <div class="sel-stats">
+        <div class="sel-stat"><span class="ssl">Ordu</span><span class="ssv" id="sel-army">\u2014</span></div>
+        <div class="sel-stat"><span class="ssl">Savunma</span><span class="ssv" id="sel-def">\u2014</span></div>
+        <div class="sel-stat"><span class="ssl">Gelir</span><span class="ssv" id="sel-inc">\u2014</span></div>
+        <div class="sel-stat"><span class="ssl">N\u00fcfus</span><span class="ssv" id="sel-pop">\u2014</span></div>
+      </div>
+      <span class="sel-badge sb-neutral" id="sel-badge">SE\u00c7\u0130LMED\u0130</span>
+    </div>
+    <div id="action-bar">
+      <button class="btn btn-danger" id="btn-atk" onclick="doAttack()" disabled>\u2694 Sald\u0131r</button>
+      <button class="btn btn-primary" id="btn-rec" onclick="switchTab('army')" disabled>\ud83d\udee1 Asker Al</button>
+      <button class="btn btn-info" id="btn-bld" onclick="switchTab('factory')" disabled>\ud83c\udfed Fabrika Kur</button>
+      <span id="hint-txt">Haritadan bir b\u00f6lge se\u00e7in.</span>
+      <div class="cd-group">
+        <div class="cd-item"><span class="cd-icon">\u2694</span><div class="cd-bar"><div class="cd-fill cd-atk" id="cd-atk" style="width:100%"></div></div></div>
+        <div class="cd-item"><span class="cd-icon">\ud83d\udee1</span><div class="cd-bar"><div class="cd-fill cd-rec" id="cd-rec" style="width:100%"></div></div></div>
+        <div class="cd-item"><span class="cd-icon">\ud83c\udfed</span><div class="cd-bar"><div class="cd-fill cd-bld" id="cd-bld" style="width:100%"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARMY -->
+  <div class="tab-panel" id="panel-army">
+    <div class="sec-hdr">
+      <div class="sec-title">\u2694 Birlikleriniz</div>
+      <div style="text-align:right"><div class="big-val" id="power-total">0</div><div class="small-lbl">Toplam G\u00fc\u00e7</div></div>
+    </div>
+    <div id="army-scroll"><div id="unit-list"></div></div>
+  </div>
+
+  <!-- FACTORY -->
+  <div class="tab-panel" id="panel-factory">
+    <div class="sec-hdr">
+      <div class="sec-title">\ud83c\udfed Fabrikalar</div>
+      <div style="text-align:right"><div class="big-val" id="fac-total">0</div><div class="small-lbl">Toplam</div></div>
+    </div>
+    <div id="factory-scroll"><div class="factory-grid" id="factory-list"></div></div>
+  </div>
+
+  <!-- RANKINGS -->
+  <div class="tab-panel" id="panel-rank">
+    <div class="sec-hdr">
+      <div class="sec-title">\ud83c\udfc6 D\u00fcnya S\u0131ralamas\u0131</div>
+      <div class="small-lbl">En g\u00fc\u00e7l\u00fc devletler</div>
+    </div>
+    <div id="rank-scroll"><div id="rank-list"></div></div>
+  </div>
+
+  <!-- LOG -->
+  <div class="tab-panel" id="panel-log">
+    <div class="sec-hdr"><div class="sec-title">\ud83d\udcdc Sava\u015f G\u00fcnl\u00fc\u011f\u00fc</div></div>
+    <div id="log-scroll"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="tab-panel" id="panel-admin">
+    <div class="sec-hdr">
+      <div class="sec-title">\u2623\ufe0f Admin Kriz Merkezi</div>
+      <div class="small-lbl" style="color:var(--orange)">MASTER KONTROL</div>
+    </div>
+    <div id="admin-scroll">
+      <div class="admin-section">
+        <div class="admin-sec-title">K\u00dcRESEL M\u00dcDAHALE</div>
+        <button class="admin-btn danger" onclick="triggerCrisis('pandemic')">\u2623\ufe0f PANDEM\u0130 \u0130LAN ET \u2014 N\u00fcfus %20 azal\u0131r</button>
+        <button class="admin-btn danger" onclick="triggerCrisis('famine')">\ud83c\udf3e A\u00c7LIK KR\u0130Z\u0130 \u2014 T\u00fcm gelirler %40 d\u00fc\u015fer</button>
+        <button class="admin-btn danger" onclick="triggerCrisis('war')">\u2694 D\u00dcNYA SAVA\u015eI \u2014 AI sald\u0131rganl\u0131\u011f\u0131 5x artar</button>
+        <button class="admin-btn danger" onclick="triggerCrisis('crash')">\ud83d\udcc9 EKONOM\u0130K \u00c7\u00d6K\u00dc\u015e \u2014 \u0130stikrar \u00e7\u00f6ker</button>
+        <button class="admin-btn peace" onclick="triggerCrisis('peace')">\ud83d\udd4a\ufe0f ZORUNLU BARI\u015e \u2014 Sava\u015flar durur</button>
+        <button class="admin-btn peace" onclick="triggerCrisis('boom')">\ud83d\udcb0 ALTIN PATLAMASI \u2014 +1000 alt\u0131n kazan</button>
+      </div>
+      <div class="admin-section">
+        <div class="admin-sec-title">DEVLETLERARASI DENGE</div>
+        <div id="state-balance"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="notif-wrap"></div>
+<div id="tooltip"></div>
+
+<script>
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// CONFIG
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+const COLS = 20, ROWS = 15;
+const TOTAL = COLS * ROWS;
+const NUM_STATES = 12;
+const PLAYER_ID = 0;
+
+const CD = { attack:6000, infantry:7000, archer:9000, cavalry:11000, siege:14000, mine:9000, barracks:11000, market:11000, forge:16000 };
+
+const COUNTRIES = [
+  {name:"T\u00dcRK\u0130YE",    flag:"\ud83c\uddf9\ud83c\uddf7", color:"#e67e22", hue:25},
+  {name:"RUSYA",       flag:"\ud83c\uddf7\ud83c\uddfa", color:"#c0392b", hue:0},
+  {name:"ABD",         flag:"\ud83c\uddfa\ud83c\uddf8", color:"#2980b9", hue:210},
+  {name:"\u00c7\u0130N",         flag:"\ud83c\udde8\ud83c\uddf3", color:"#c0392b", hue:355},
+  {name:"ALMANYA",     flag:"\ud83c\udde9\ud83c\uddea", color:"#2c3e50", hue:210},
+  {name:"FRANSA",      flag:"\ud83c\uddeb\ud83c\uddf7", color:"#3498db", hue:200},
+  {name:"\u0130NG\u0130LTERE",  flag:"\ud83c\uddec\ud83c\udde7", color:"#1abc9c", hue:168},
+  {name:"\u0130RAN",        flag:"\ud83c\uddee\ud83c\uddf7", color:"#16a085", hue:160},
+  {name:"MISIR",       flag:"\ud83c\uddea\ud83c\uddec", color:"#d35400", hue:30},
+  {name:"H\u0130ND\u0130STAN",  flag:"\ud83c\uddee\ud83c\uddf3", color:"#e67e22", hue:36},
+  {name:"JAPONYA",     flag:"\ud83c\uddef\ud83c\uddf5", color:"#e84393", hue:340},
+  {name:"BREZ\u0130LYA",   flag:"\ud83c\udde7\ud83c\uddf7", color:"#27ae60", hue:145},
+];
+
+const CITIES = [
+  "\u0130stanbul","Ankara","\u0130zmir","Bursa","Antalya","Adana","Konya","Gaziantep","Mersin","Samsun",
+  "Trabzon","Kayseri","Eski\u015fehir","Diyarbak\u0131r","Van","Erzurum","Denizli","Malatya","\u015eanl\u0131urfa","Kahramanmara\u015f",
+  "Moskova","St. Petersburg","Novosibirsk","Yekaterinburg","Kazan","Omsk","Samara","\u00c7elyabinsk","Ufa","Perm",
+  "New York","Los Angeles","Chicago","Houston","Phoenix","Philadelphia","San Antonio","Dallas","Detroit","Seattle",
+  "Pekin","\u015eanghay","Guangzhou","Shenzhen","Hong Kong","Chongqing","Tianjin","Wuhan","Chengdu","Xi'an",
+  "Berlin","M\u00fcnih","Hamburg","Frankfurt","K\u00f6ln","Stuttgart","D\u00fcsseldorf","Dortmund","Essen","Bremen",
+  "Paris","Marsilya","Lyon","Toulouse","Nice","Nantes","Strasbourg","Bordeaux","Montpellier","Rennes",
+  "Londra","Birmingham","Manchester","Liverpool","Leeds","Glasgow","Edinburgh","Bristol","Sheffield","Cardiff",
+  "Tahran","Me\u015fhed","\u0130sfahan","Karaj","\u015eiraz","Tebriz","Ahvaz","Kum","Kermanshah","Urmiye",
+  "Kahire","\u0130skenderiye","Giza","L\u00fcksor","Aswan","Port Said","S\u00fcvey\u015f","Mansoura","Tanta","Asyut",
+  "Yeni Delhi","Mumbai","Kalk\u00fcta","Bangalore","Haydarabad","Chennai","Ahmedabad","Surat","Pune","Jaipur",
+  "Tokyo","Osaka","Nagoya","Sapporo","Fukuoka","Kyoto","Kobe","Sendai","Hiroshima","Kitakyushu",
+  "S\u00e3o Paulo","Rio de Janeiro","Bras\u00edlia","Salvador","Fortaleza","Belo Horizonte","Manaus","Curitiba","Recife","Porto Alegre",
+];
+
+const UNITS = {
+  infantry: {id:'infantry',name:'Piyade',icon:'\ud83d\udee1\ufe0f',desc:'Sa\u011flam temel birlik. Dengeli sald\u0131r\u0131 ve savunma.',attack:1,defense:1,power:1,cost:25,max:999},
+  archer:   {id:'archer',  name:'Ok\u00e7u',  icon:'\ud83c\udff9',desc:'Uzun menzilli keskin at\u0131\u015flar. Sald\u0131r\u0131 odakl\u0131.',attack:2.5,defense:0.3,power:1.8,cost:45,max:500},
+  cavalry:  {id:'cavalry', name:'S\u00fcvari',icon:'\ud83d\udc0e',desc:'Y\u0131ld\u0131r\u0131m h\u0131z\u0131nda sald\u0131r\u0131. Y\u00fcksek darbe g\u00fcc\u00fc.',attack:4,defense:0.8,power:3.5,cost:80,max:300},
+  siege:    {id:'siege',   name:'Manc\u0131n\u0131k',icon:'\ud83d\udca5',desc:'Kaleleri y\u0131kar. Savunma ezici g\u00fc\u00e7le par\u00e7alan\u0131r.',attack:8,defense:0.1,power:6,cost:150,max:100},
+};
+
+const FACTORIES = {
+  mine:     {id:'mine',    name:'Alt\u0131n Madeni', icon:'\u26cf\ufe0f', desc:'Zengin alt\u0131n damarlar\u0131. Gelir +%60.',  cost:60,  maxPerReg:3, effectText:'+%60 Gelir',   cdKey:'mine'},
+  barracks: {id:'barracks',name:'K\u0131\u015fla',        icon:'\ud83c\udff0', desc:'Profesyonel askerler. Savunma +%40.',  cost:80,  maxPerReg:2, effectText:'+%40 Savunma', cdKey:'barracks'},
+  market:   {id:'market',  name:'Ticaret Pazar\u0131',icon:'\u2696\ufe0f',desc:'Ticaret yollar\u0131 kontrol\u00fc. +25 alt\u0131n/tur.',cost:100,maxPerReg:2, effectText:'+25 Alt\u0131n/tur',cdKey:'market'},
+  forge:    {id:'forge',   name:'Silah D\u00f6vme',  icon:'\u2692\ufe0f', desc:'Usta demirciler. Sald\u0131r\u0131 +%30.',      cost:200, maxPerReg:1, effectText:'+%30 Sald\u0131r\u0131', cdKey:'forge'},
+};
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// STATE
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+let G = {
+  running:false, speed:1, time:0, selected:null,
+  player:{gold:500,units:{infantry:15,archer:0,cavalry:0,siege:0},cooldowns:{},
+    stats:{battles:0,wins:0,losses:0,goldEarned:0,factoriesBuilt:0}},
+  regions:[], states:[], logs:[], newLogs:0, intelMsgs:[],
+  crisisMode:null, warLevel:0,
+};
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// INIT
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function initGame() {
+  // States
+  G.states = COUNTRIES.map((c,i) => ({
+    id:i, name:c.name, flag:c.flag, color:c.color, hue:c.hue,
+    gold: i===PLAYER_ID ? 500 : 100+Math.random()*200,
+    army: i===PLAYER_ID ? 30  : 5+Math.random()*20,
+    aggro: i===PLAYER_ID ? 0 : 0.2+Math.random()*0.5,
+    nextAction: Math.random()*3000,
+    population: Math.floor(Math.random()*50000000)+5000000,
+  }));
+
+  // Regions
+  G.regions = Array.from({length:TOTAL}, (_,i) => ({
+    id:i,
+    name: CITIES[i % CITIES.length],
+    owner: Math.floor(i / (TOTAL/NUM_STATES)) % NUM_STATES,
+    army: Math.floor(Math.random()*10)+3,
+    mines:0, barracks:0, markets:0, forges:0,
+    baseIncome: Math.floor(Math.random()*12)+8,
+    population: Math.floor(Math.random()*2000000)+500000,
+    stability: 100,
+  }));
+
+  // Player gets first 3 regions with Turkish city names
+  [0,1,2].forEach((id,i) => {
+    G.regions[id].owner = PLAYER_ID;
+    G.regions[id].army = 15+i*3;
+    G.regions[id].name = ["\u0130stanbul","Ankara","\u0130zmir"][i];
+    G.regions[id].population = [15000000, 5700000, 4400000][i];
+  });
+
+  G.player.gold=500;
+  G.player.units={infantry:15,archer:0,cavalry:0,siege:0};
+  G.player.cooldowns={};
+  G.time=0; G.newLogs=0; G.warLevel=0;
+
+  resizeCanvas();
+  renderArmyPanel();
+  renderFactoryPanel();
+  renderAdminPanel();
+  updateUI();
+  drawMap();
+  gameLoop();
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// CANVAS
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+let cW, cH;
+
+function resizeCanvas() {
+  const wrap = document.getElementById('map-wrap');
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  cW = canvas.width / COLS;
+  cH = canvas.height / ROWS;
+  if(G.running) drawMap();
+}
+window.addEventListener('resize', resizeCanvas);
+
+function drawMap() {
+  ctx.fillStyle='#05070a';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.025)';
+  ctx.lineWidth=0.5;
+  for(let x=0;x<=canvas.width;x+=cW){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+  for(let y=0;y<=canvas.height;y+=cH){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+  G.regions.forEach(r => drawRegion(r));
+}
+
+function drawRegion(r) {
+  const col = r.id%COLS, row = Math.floor(r.id/COLS);
+  const x=col*cW+1, y=row*cH+1, w=cW-2, h=cH-2;
+  const st = G.states[r.owner];
+  const isPlayer = r.owner===PLAYER_ID;
+  const isSel = G.selected===r.id;
+  const isNbEnemy = isPlayerNeighbor(r.id) && r.owner!==PLAYER_ID;
+
+  // Fill
+  if(isPlayer) ctx.fillStyle='#1a3d5c';
+  else ctx.fillStyle=`hsl(${st.hue},45%,22%)`;
+  ctx.fillRect(x,y,w,h);
+
+  // Enemy neighbor highlight
+  if(isNbEnemy){ctx.fillStyle='rgba(231,76,60,0.15)';ctx.fillRect(x,y,w,h);}
+
+  // Factory dots
+  const facs=[...Array(r.mines).fill('#f39c12'),...Array(r.barracks).fill('#2980b9'),...Array(r.markets).fill('#27ae60'),...Array(r.forges).fill('#d4af37')];
+  facs.slice(0,5).forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(x+3+i*5,y+3,4,4);});
+
+  // Selection border
+  if(isSel){
+    ctx.save();ctx.shadowColor='#d4af37';ctx.shadowBlur=14;
+    ctx.strokeStyle='#d4af37';ctx.lineWidth=2;
+    ctx.strokeRect(x-1,y-1,w+2,h+2);ctx.restore();
+  } else {
+    ctx.strokeStyle=isPlayer?'#4a9ede':`hsl(${st.hue},65%,40%)`;
+    ctx.lineWidth=0.8;ctx.strokeRect(x,y,w,h);
+  }
+
+  // Army number
+  if(w>20 && h>16){
+    const fs=Math.max(8,Math.min(10,Math.floor(w/4)));
+    ctx.font=`bold ${fs}px Cinzel,serif`;
+    ctx.fillStyle='rgba(255,255,255,0.88)';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(r.army.toString(), x+w/2, y+h/2);
+  }
+
+  // Flag emoji (corner)
+  if(w>32 && h>22){
+    ctx.font='11px serif';
+    ctx.textAlign='right';ctx.textBaseline='top';
+    ctx.fillText(st.flag, x+w-3, y+3);
+  }
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// INPUT
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+canvas.addEventListener('click', handleClick);
+canvas.addEventListener('touchend', e=>{e.preventDefault();const t=e.changedTouches[0];handleClick({clientX:t.clientX,clientY:t.clientY});},{passive:false});
+canvas.addEventListener('mousemove', e=>{
+  const tt=document.getElementById('tooltip');
+  const rect=canvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(canvas.width/rect.width);
+  const my=(e.clientY-rect.top)*(canvas.height/rect.height);
+  const col=Math.floor(mx/cW), row=Math.floor(my/cH);
+  if(col>=0&&col<COLS&&row>=0&&row<ROWS){
+    const r=G.regions[row*COLS+col];
+    const st=G.states[r.owner];
+    tt.style.display='block';
+    tt.style.left=(e.clientX+14)+'px';
+    tt.style.top=(e.clientY+14)+'px';
+    tt.innerHTML=`<div class="tt-title">${st.flag} ${r.name}</div>
+      <div class="tt-row"><span>Devlet</span><span>${st.name}</span></div>
+      <div class="tt-row"><span>Ordu</span><span>${r.army}</span></div>
+      <div class="tt-row"><span>N\u00fcfus</span><span>${(r.population/1e6).toFixed(1)}M</span></div>
+      <div class="tt-row"><span>Gelir</span><span>${calcIncome(r)}/tur</span></div>
+      <div class="tt-row"><span>Savunma</span><span>%${calcDefense(r)}</span></div>`;
+  } else tt.style.display='none';
+});
+canvas.addEventListener('mouseleave',()=>document.getElementById('tooltip').style.display='none');
+
+function handleClick(e){
+  if(!G.running)return;
+  const rect=canvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(canvas.width/rect.width);
+  const my=(e.clientY-rect.top)*(canvas.height/rect.height);
+  const col=Math.floor(mx/cW), row=Math.floor(my/cH);
+  if(col>=0&&col<COLS&&row>=0&&row<ROWS){
+    const prev=G.selected;
+    G.selected=row*COLS+col;
+    if(prev!==G.selected){drawMap();updateSelection();}
+  }
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// HELPERS
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function getNeighbors(id){
+  const r=Math.floor(id/COLS),c=id%COLS,nb=[];
+  if(r>0)nb.push(id-COLS);if(r<ROWS-1)nb.push(id+COLS);
+  if(c>0)nb.push(id-1);if(c<COLS-1)nb.push(id+1);
+  return nb;
+}
+function isPlayerNeighbor(id){return getNeighbors(id).some(n=>G.regions[n]?.owner===PLAYER_ID);}
+function getStateRegs(sid){return G.regions.filter(r=>r.owner===sid);}
+function calcIncome(r){return r.baseIncome+r.mines*Math.floor(r.baseIncome*0.6)+r.markets*25;}
+function calcDefense(r){return 100+r.barracks*40+r.forges*20;}
+function calcPower(){let p=0;for(const t in G.player.units)p+=G.player.units[t]*UNITS[t].power;return Math.floor(p);}
+function reduceUnits(amount){
+  const total=Math.max(1,calcPower());
+  for(const t in G.player.units){
+    const ratio=(G.player.units[t]*UNITS[t].power)/total;
+    G.player.units[t]=Math.max(0,Math.floor(G.player.units[t]-amount*ratio/UNITS[t].power));
+  }
+  G.states[PLAYER_ID].army=calcPower();
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// ACTIONS
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function doAttack(){
+  if(G.selected==null)return;
+  const r=G.regions[G.selected];
+  if(r.owner===PLAYER_ID){notify('Kendi b\u00f6lgenize sald\u0131ramazs\u0131n\u0131z!','err');return;}
+  if(!isPlayerNeighbor(G.selected)){notify('Bu b\u00f6lge menzil d\u0131\u015f\u0131nda!','err');return;}
+  const now=performance.now();
+  if(now<(G.player.cooldowns.attack||0)){notify(`Sald\u0131r\u0131 i\u00e7in ${Math.ceil((G.player.cooldowns.attack-now)/1000)}s bekleyin`,'err');return;}
+  const myRegs=getStateRegs(PLAYER_ID);
+  G.player.stats.battles++;
+  const atkPow=calcPower()+myRegs.length*2;
+  const enemyRegs=getStateRegs(r.owner).length;
+  const defPow=r.army*(calcDefense(r)/100)+enemyRegs*0.5;
+  const won=Math.random()<atkPow/(atkPow+defPow);
+  if(won){
+    const losses=Math.floor(Math.random()*3)+1;
+    reduceUnits(losses);
+    r.owner=PLAYER_ID;
+    r.army=Math.max(1,Math.floor(atkPow*0.1));
+    r.stability=Math.min(100,r.stability+10);
+    const inc=calcIncome(r);
+    G.player.gold+=inc;
+    G.player.stats.goldEarned+=inc;
+    G.player.stats.wins++;
+    spawnCombatText(G.selected,`+${inc}\ud83d\udcb0`,true);
+    addLog(`\u2694 ${r.name} fethedildi! Kay\u0131p: ${losses} birim`,'win');
+    notify(`Zafer! ${r.name} ele ge\u00e7irildi.`,'ok');
+  } else {
+    const losses=Math.floor(Math.random()*5)+2;
+    reduceUnits(losses);
+    r.army=Math.max(1,r.army-Math.floor(losses/2));
+    G.player.stats.losses++;
+    spawnCombatText(G.selected,'BA\u015eARISIZ',false);
+    addLog(`\ud83d\udc80 ${r.name} sald\u0131r\u0131s\u0131 p\u00fcsk\u00fcrt\u00fcld\u00fc! Kay\u0131p: ${losses}`,'war');
+    notify('Sald\u0131r\u0131 p\u00fcsk\u00fcrt\u00fcld\u00fc!','err');
+  }
+  G.player.cooldowns.attack=now+CD.attack;
+  updateUI();drawMap();checkEnd();
+}
+
+function recruitUnit(type){
+  const unit=UNITS[type];
+  const now=performance.now();
+  if(now<(G.player.cooldowns[type]||0)){notify(`${unit.name}: ${Math.ceil((G.player.cooldowns[type]-now)/1000)}s bekleyin`,'err');return;}
+  if(G.player.gold<unit.cost){notify(`Yetersiz alt\u0131n! Gerekli: ${unit.cost}\ud83d\udcb0`,'err');return;}
+  if(G.player.units[type]>=unit.max){notify('Maksimum birliklere ula\u015f\u0131ld\u0131!','err');return;}
+  const amt=type==='infantry'?Math.floor(Math.random()*5)+5:type==='archer'?Math.floor(Math.random()*3)+3:type==='cavalry'?Math.floor(Math.random()*2)+2:1;
+  G.player.gold-=unit.cost;
+  G.player.units[type]+=amt;
+  G.states[PLAYER_ID].army=calcPower();
+  G.player.cooldowns[type]=now+CD[type];
+  if(G.selected!=null&&G.regions[G.selected].owner===PLAYER_ID)
+    G.regions[G.selected].army+=Math.floor(amt*0.3);
+  addLog(`${unit.icon} ${amt} ${unit.name} birli\u011fe kat\u0131ld\u0131`,'info');
+  notify(`${amt} ${unit.name} al\u0131nd\u0131!`,'ok');
+  updateUI();drawMap();
+}
+
+function buildFactory(type){
+  if(G.selected==null){notify('\u00d6nce bir b\u00f6lge se\u00e7in','err');return;}
+  const r=G.regions[G.selected];
+  if(r.owner!==PLAYER_ID){notify('Sadece kendi b\u00f6lgenize in\u015fa edebilirsiniz','err');return;}
+  const fac=FACTORIES[type];
+  const now=performance.now();
+  if(now<(G.player.cooldowns[fac.cdKey]||0)){notify(`${fac.name}: ${Math.ceil((G.player.cooldowns[fac.cdKey]-now)/1000)}s bekleyin`,'err');return;}
+  if(G.player.gold<fac.cost){notify(`Yetersiz alt\u0131n! Gerekli: ${fac.cost}\ud83d\udcb0`,'err');return;}
+  const field=type+'s';
+  if(r[field]>=fac.maxPerReg){notify(`Bu b\u00f6lgede maks. ${fac.name} s\u0131n\u0131r\u0131na ula\u015f\u0131ld\u0131`,'err');return;}
+  G.player.gold-=fac.cost;
+  r[field]++;
+  G.player.stats.factoriesBuilt++;
+  G.player.cooldowns[fac.cdKey]=now+CD[fac.cdKey];
+  addLog(`${fac.icon} ${fac.name} ${r.name} b\u00f6lgesine kuruldu!`,'gold');
+  notify(`${fac.name} in\u015fa edildi!`,'ok');
+  updateUI();drawMap();renderFactoryPanel();
+  document.getElementById('badge-fac').classList.remove('show');
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// CRISIS SYSTEM (Deneme5'ten ilham)
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function triggerCrisis(type){
+  switch(type){
+    case 'pandemic':
+      G.regions.forEach(r=>r.population=Math.floor(r.population*0.8));
+      G.states.forEach(s=>s.army=Math.floor(s.army*0.7));
+      addLog('\u2623\ufe0f K\u00dcRESEL PANDEM\u0130: N\u00fcfus %20 azald\u0131, ordular zay\u0131flad\u0131!','crisis');
+      notify('PANDEM\u0130 \u0130LAN ED\u0130LD\u0130!','crisis');
+      pushIntel('K\u00dcRESEL SALGIN ba\u015flad\u0131. N\u00fcfus d\u00fc\u015f\u00fc\u015f\u00fc ba\u015flad\u0131.',1);
+      break;
+    case 'famine':
+      G.regions.forEach(r=>r.baseIncome=Math.max(1,Math.floor(r.baseIncome*0.6)));
+      addLog('\ud83c\udf3e A\u00c7LIK KR\u0130Z\u0130: T\u00fcm b\u00f6lge gelirleri %40 d\u00fc\u015ft\u00fc!','crisis');
+      notify('A\u00c7LIK KR\u0130Z\u0130!','crisis');
+      break;
+    case 'war':
+      G.states.forEach(s=>{if(s.id!==PLAYER_ID)s.aggro=Math.min(1,s.aggro*3);});
+      G.warLevel=5;
+      addLog('\u2694 D\u00dcNYA SAVA\u015eI: AI sald\u0131rganl\u0131\u011f\u0131 3x artt\u0131!','crisis');
+      notify('D\u00dcNYA SAVA\u015eI BA\u015eLADI!','crisis');
+      break;
+    case 'crash':
+      G.player.gold=Math.floor(G.player.gold*0.5);
+      G.regions.forEach(r=>r.stability=Math.max
