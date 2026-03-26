@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Rival Regions Simulator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Ana oyun kartı */
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(18, 25, 45, 0.75);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* Başlık */
+        .game-header {
+            background: #0b0f17;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #ffc857;
+            text-align: center;
+        }
+        .game-header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffe6b3, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .game-header p {
+            margin: 0.25rem 0 0;
+            font-size: 0.75rem;
+            color: #9aa9c1;
+        }
+
+        /* İstatistik paneli */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid #2a3448;
+        }
+        .stat-card {
+            background: #11171fcc;
+            backdrop-filter: blur(4px);
+            border-radius: 1.2rem;
+            padding: 0.7rem 0.5rem;
+            text-align: center;
+            border: 1px solid #2e3b4e;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: 0.1s linear;
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #b9c7d9;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffd966;
+            line-height: 1.2;
+        }
+        .stat-sub {
+            font-size: 0.7rem;
+            color: #a0b0c8;
+        }
+
+        /* Buton alanı */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 1.5rem;
+            justify-content: center;
+            background: #0f1420;
+        }
+        .game-btn {
+            background: #1e2a3a;
+            border: none;
+            border-radius: 3rem;
+            padding: 10px 18px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #f0f3fa;
+            cursor: pointer;
+            transition: 0.1s ease;
+            box-shadow: 0 3px 0 #0a0e14;
+            flex: 1 0 auto;
+            min-width: 100px;
+            font-family: inherit;
+        }
+        .game-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #0a0e14;
+        }
+        .game-btn.primary {
+            background: #d48f2b;
+            color: #1e1a0c;
+            box-shadow: 0 3px 0 #8b5a1a;
+        }
+        .game-btn.war {
+            background: #a3332c;
+            box-shadow: 0 3px 0 #5e1e19;
+        }
+        .game-btn.perk {
+            background: #2c6e5c;
+            box-shadow: 0 3px 0 #1b4539;
+        }
+        .game-btn.reset {
+            background: #3a2c2f;
+            color: #e0b3a2;
+        }
+
+        /* Log alanı */
+        .log-area {
+            background: #050a12;
+            padding: 1rem;
+            border-top: 1px solid #2c3548;
+            max-height: 240px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .log-entry {
+            padding: 4px 8px;
+            border-bottom: 1px solid #1e2538;
+            color: #cbd5e6;
+        }
+        .log-entry.warning {
+            color: #f5a65b;
+        }
+        .log-entry.success {
+            color: #8bc34a;
+        }
+        .log-entry.event {
+            color: #ffb347;
+        }
+        .badge {
+            background: #1e2a36;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+        }
+        footer {
+            font-size: 0.65rem;
+            text-align: center;
+            padding: 0.8rem;
+            color: #4d5a73;
+        }
+        @media (max-width: 550px) {
+            .stats-panel { grid-template-columns: repeat(2,1fr); }
+            .game-btn { font-size: 0.7rem; padding: 8px 10px; min-width: 70px; }
+            .stat-value { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="game-header">
+        <h1>⚔️ RIVAL REGIONS ⚙️</h1>
+        <p>Jeopolitik simülatör — Wiki sürümü</p>
+    </div>
+
+    <div class="stats-panel" id="statsPanel">
+        <!-- Dinamik istatistikler js ile doldurulacak -->
+    </div>
+
+    <div class="actions">
+        <button class="game-btn war" id="warBtn">⚔️ SAVAŞ</button>
+        <button class="game-btn primary" id="workGoldBtn">⛏️ ALTIN MADENİ</button>
+        <button class="game-btn" id="workOilBtn">🛢️ PETROL</button>
+        <button class="game-btn" id="workOreBtn">⛰️ CEVHER</button>
+        <button class="game-btn" id="trainBtn">🏋️ EĞİTİM</button>
+        <button class="game-btn" id="buyWeaponBtn">🔫 SİLAH AL</button>
+        <button class="game-btn perk" id="addPerkBtn">💪 DAYANIKLILIK +1</button>
+        <button class="game-btn" id="factoryBtn">🏭 FABRİKA KUR (500💰)</button>
+        <button class="game-btn reset" id="resetBtn">🔄 YENİ OYUN</button>
+    </div>
+
+    <div class="log-area" id="logArea">
+        <div class="log-entry">✨ Rival Regions'a hoş geldiniz, Komutan!</div>
+        <div class="log-entry">📌 Öneri: Önce Dayanıklılık yeteneğini 50'ye çıkarın.</div>
+        <div class="log-entry">💰 Altın madeninde çalışarak para kazanın, silah alıp savaşlara katılın.</div>
+    </div>
+    <footer>🏆 Her 3 aksiyonda bir gün ilerler. Pasif gelir ve rastgele olaylar!</footer>
+</div>
+
+<script>
+    // ------------------- OYUNCU SINIFI -------------------
+    class Player {
+        constructor(name = "Komutan") {
+            this.name = name;
+            this.level = 1;
+            this.exp = 0;
+            this.energy = 100;
+            this.maxEnergy = 100;
+            this.gold = 100;       // başlangıç altını
+            this.oil = 0;
+            this.ore = 0;
+            this.weapons = 0;
+            this.endurance = 0;    // dayanıklılık
+            this.perkPoints = 0;
+            this.hasFactory = false;
+        }
+
+        // Deneyim kazan ve seviye atlama kontrolü
+        gainExp(amount) {
+            this.exp += amount;
+            this.addLog(`+${amount} deneyim kazandınız.`, "success");
+            let leveled = false;
+            while (this.exp >= this.level * 100) {
+                this.exp -= this.level * 100;
+                this.level++;
+                this.maxEnergy += 10;
+                this.energy = this.maxEnergy;
+                this.perkPoints++;
+                this.addLog(`🎉 SEVİYE ATLADINIZ! Seviye ${this.level} → Maksimum enerji ${this.maxEnergy}, +1 yetenek puanı!`, "event");
+                leveled = true;
+            }
+            if (leveled) this.updateUI();
+            return leveled;
+        }
+
+        // enerji harcama (iş/savaş/eğitim)
+        spendEnergy(cost) {
+            if (this.energy >= cost) {
+                this.energy -= cost;
+                return true;
+            }
+            this.addLog("Yeterli enerjiniz yok! Dinlenmek için gün geçmesini bekleyin.", "warning");
+            return false;
+        }
+
+        // Çalışma (altın, petrol, cevher)
+        work(type) {
+            let cost = (this.endurance >= 50) ? 8 : 10;
+            if (!this.spendEnergy(cost)) return false;
+
+            let gainGold = 0, gainOil = 0, gainOre = 0, expGain = 0;
+            if (type === "gold") {
+                gainGold = Math.floor(Math.random() * 21) + 20; // 20-40
+                this.gold += gainGold;
+                this.addLog(`⛏️ Altın madeninde çalıştınız! +${gainGold}💰 altın kazandınız.`, "success");
+                expGain = 10;
+            } else if (type === "oil") {
+                gainOil = Math.floor(Math.random() * 21) + 10; // 10-30
+                this.oil += gainOil;
+                this.addLog(`🛢️ Petrol kuyusunda çalıştınız! +${gainOil} varil petrol.`, "success");
+                expGain = 8;
+            } else if (type === "ore") {
+                gainOre = Math.floor(Math.random() * 21) + 15; // 15-35
+                this.ore += gainOre;
+                this.addLog(`⛰️ Cevher ocağında çalıştınız! +${gainOre} cevher.`, "success");
+                expGain = 8;
+            }
+            this.gainExp(expGain);
+            this.updateUI();
+            return true;
+        }
+
+        // Eğitim
+        train() {
+            let cost = (this.endurance >= 50) ? 4 : 5;   // eğitimde de endurance etkisi hafif
+            if (!this.spendEnergy(cost)) return false;
+            this.addLog("🏋️ Sıkı bir eğitim yaptınız! Tecrübe kazandınız.", "success");
+            this.gainExp(5);
+            this.updateUI();
+            return true;
+        }
+
+        // Silah satın al
+        buyWeapons() {
+            const costGold = 50;
+            if (this.gold >= costGold) {
+                this.gold -= costGold;
+                this.weapons += 10;
+                this.addLog("🔫 Pazardan 10 adet silah satın aldınız! Artık savaşabilirsiniz.", "success");
+                this.updateUI();
+                return true;
+            } else {
+                this.addLog(`Yeterli altın yok! (${costGold} altın gerekli)`, "warning");
+                return false;
+            }
+        }
+
+        // Savaş
+        war() {
+            if (this.weapons < 5) {
+                this.addLog("⚠️ Savaşmak için en az 5 silahınız olmalı! Önce silah satın alın.", "warning");
+                return false;
+            }
+            let cost = (this.endurance >= 100) ? 8 : 10;
+            if (!this.spendEnergy(cost)) return false;
+
+            this.weapons -= 5;
+            let damage = Math.floor(Math.random() * 21) + 10 + (this.level * 2) + Math.floor(this.endurance / 10);
+            this.addLog(`⚔️ SAVAŞ! ${damage} hasar verdiniz, düşman hatlarını yardınız.`, "success");
+            this.gainExp(15 + this.level);
+
+            // savaş ganimeti %30 ihtimal
+            if (Math.random() < 0.3) {
+                let loot = Math.floor(Math.random() * 41) + 10; // 10-50
+                this.gold += loot;
+                this.addLog(`🏆 Savaş ganimeti! +${loot} altın buldunuz.`, "event");
+            }
+            this.updateUI();
+            return true;
+        }
+
+        // Yetenek puanı ekle (dayanıklılık)
+        addPerk() {
+            if (this.perkPoints > 0) {
+                this.perkPoints--;
+                this.endurance++;
+                this.addLog(`💪 Dayanıklılık seviyeniz ${this.endurance} oldu!`, "success");
+                if (this.endurance === 50) {
+                    this.addLog("✨ Yetenek etkin: İşlerde %20 daha az enerji harcıyorsunuz! (8 enerji)", "event");
+                }
+                if (this.endurance === 100) {
+                    this.addLog("✨ Yetenek etkin: Savaşlarda %20 daha az enerji harcıyorsunuz! (8 enerji)", "event");
+                }
+                this.updateUI();
+                return true;
+            } else {
+                this.addLog("Yetenek puanınız yok! Seviye atlayarak kazanabilirsiniz.", "warning");
+                return false;
+            }
+        }
+
+        // Fabrika kur
+        createFactory() {
+            if (this.hasFactory) {
+                this.addLog("Zaten bir fabrikanız var! Pasif gelir alıyorsunuz.", "warning");
+                return false;
+            }
+            if (this.gold >= 500) {
+                this.gold -= 500;
+                this.hasFactory = true;
+                this.addLog("🏭 Kendi fabrikanızı kurdunuz! Artık her gün pasif altın kazanacaksınız.", "event");
+                this.updateUI();
+                return true;
+            } else {
+                this.addLog("Fabrika kurmak için 500 altın gerekli! Daha çok çalışın.", "warning");
+                return false;
+            }
+        }
+
+        // Pasif gelir (günlük)
+        factoryIncome() {
+            if (this.hasFactory) {
+                let income = Math.floor(Math.random() * 16) + 5; // 5-20
+                this.gold += income;
+                this.addLog(`🏭 Fabrikanızdan +${income} altın pasif gelir elde ettiniz.`, "success");
+                return income;
+            }
+            return 0;
+        }
+
+        // Günlük olaylar (enerji yenileme, rastgele)
+        dailyReset() {
+            // enerji yenileme: +20 (max'i geçemez)
+            let oldEnergy = this.energy;
+            this.energy = Math.min(this.maxEnergy, this.energy + 20);
+            this.addLog(`🌅 Yeni gün! +${this.energy - oldEnergy} enerji yenilendi.`, "event");
+
+            // Fabrika pasif
+            this.factoryIncome();
+
+            // rastgele olay %20 ihtimal bonus altın, %10 ihtimal enerji kaybı
+            let rand = Math.random();
+            if (rand < 0.2) {
+                let bonus = Math.floor(Math.random() * 21) + 10;
+                this.gold += bonus;
+                this.addLog(`🎁 Rastgele olay: Hazine buldunuz! +${bonus} altın.`, "event");
+            } else if (rand < 0.3) {
+                let loss = Math.floor(Math.random() * 11) + 5;
+                this.energy = Math.max(0, this.energy - loss);
+                this.addLog(`⚠️ Rastgele olay: Hırsızlar saldırdı! ${loss} enerji kaybettiniz.`, "warning");
+            }
+            this.updateUI();
+        }
+
+        // UI güncelleme (callback)
+        updateUI() {
+            if (window.updateStatsDisplay) window.updateStatsDisplay(this);
+        }
+
+        addLog(msg, type = "normal") {
+            if (window.addGameLog) window.addGameLog(msg, type);
+        }
+    }
+
+    // ---------- GLOBAL DEĞİŞKENLER ----------
+    let player = null;
+    let actionCounter = 0;       // her 3 aksiyonda gün ilerler
+    let gameLog = [];            // log geçmişi
+
+    // DOM elementleri
+    const statsPanel = document.getElementById("statsPanel");
+    const logArea = document.getElementById("logArea");
+
+    // Log ekleme fonksiyonu (UI)
+    function addGameLog(message, type = "normal") {
+        const logDiv = document.createElement("div");
+        logDiv.className = "log-entry";
+        if (type === "warning") logDiv.classList.add("warning");
+        else if (type === "success") logDiv.classList.add("success");
+        else if (type === "event") logDiv.classList.add("event");
+        const timeStr = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        logDiv.innerHTML = `[${timeStr}] ${message}`;
+        logArea.appendChild(logDiv);
+        logDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        // log sayısı sınırla
+        while (logArea.children.length > 80) logArea.removeChild(logArea.firstChild);
+    }
+
+    // istatistik panelini güncelle
+    function updateStatsDisplay(p) {
+        if (!p) return;
+        statsPanel.innerHTML = `
+            <div class="stat-card"><div class="stat-label">${p.name}</div><div class="stat-value">⭐ LVL ${p.level}</div><div class="stat-sub">EXP ${p.exp}/${p.level*100}</div></div>
+            <div class="stat-card"><div class="stat-label">⚡ ENERJİ</div><div class="stat-value">${p.energy}/${p.maxEnergy}</div><div class="stat-sub">💪 Dayan: ${p.endurance}</div></div>
+            <div class="stat-card"><div class="stat-label">💰 ALTIN</div><div class="stat-value">${Math.floor(p.gold)}</div><div class="stat-sub">🛢️ ${p.oil} | ⛏️ ${p.ore}</div></div>
+            <div class="stat-card"><div class="stat-label">🔫 SİLAH</div><div class="stat-value">${p.weapons}</div><div class="stat-sub">🏭 Fabrika: ${p.hasFactory ? "Evet" : "Hayır"}</div></div>
+            <div class="stat-card"><div class="stat-label">🔧 YETENEK PUANI</div><div class="stat-value">${p.perkPoints}</div><div class="stat-sub">Dayanıklılık ${p.endurance}</div></div>
+        `;
+    }
+
+    // Gün ilerleme (her 3 aksiyonda bir)
+    function advanceDayIfNeeded() {
+        actionCounter++;
+        if (actionCounter >= 3) {
+            actionCounter = 0;
+            player.dailyReset();
+        }
+    }
+
+    // Aksiyonları saran fonksiyon (her buton tıklamasında çalışır)
+    function performAction(actionFn) {
+        if (!player) return;
+        // aksiyonu çalıştır (true/false dönebilir)
+        const result = actionFn();
+        if (result !== false) {
+            // aksiyon başarılı ise gün ilerleme kontrolü
+            advanceDayIfNeeded();
+        }
+        // UI her durumda güncellenir
+        updateStatsDisplay(player);
+    }
+
+    // Oyunu başlat / resetle
+    function initGame(resetName = true) {
+        let newName = "Komutan";
+        if (resetName) {
+            newName = prompt("Komutan adınızı girin:", "Komutan") || "Komutan";
+        } else if (player) {
+            newName = player.name;
+        }
+        player = new Player(newName);
+        actionCounter = 0;
+        // Log temizleme
+        logArea.innerHTML = "";
+        addGameLog(`🏁 Yeni oyun başladı! Hoş geldin ${player.name}.`, "event");
+        addGameLog("📌 Wiki rehberi: Dayanıklılık → 50, altın madeninde çalış, silah al, savaş.", "success");
+        addGameLog("⚡ Her 3 aksiyonda bir gün geçer ve enerji yenilenir.", "normal");
+        updateStatsDisplay(player);
+    }
+
+    // ------ OLAY BAĞLANTILARI ------
+    window.addEventListener("DOMContentLoaded", () => {
+        initGame(true);
+
+        // Butonlar
+        document.getElementById("warBtn").onclick = () => performAction(() => player.war());
+        document.getElementById("workGoldBtn").onclick = () => performAction(() => player.work("gold"));
+        document.getElementById("workOilBtn").onclick = () => performAction(() => player.work("oil"));
+        document.getElementById("workOreBtn").onclick = () => performAction(() => player.work("ore"));
+        document.getElementById("trainBtn").onclick = () => performAction(() => player.train());
+        document.getElementById("buyWeaponBtn").onclick = () => performAction(() => player.buyWeapons());
+        document.getElementById("addPerkBtn").onclick = () => performAction(() => player.addPerk());
+        document.getElementById("factoryBtn").onclick = () => performAction(() => player.createFactory());
+        document.getElementById("resetBtn").onclick = () => { initGame(true); };
+    });
+
+    // Global referanslar
+    window.updateStatsDisplay = updateStatsDisplay;
+    window.addGameLog = addGameLog;
+</script>
+</body>
+</html>
